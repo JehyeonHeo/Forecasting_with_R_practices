@@ -239,3 +239,15 @@ ggAcf(mypigs)
 ``` 
  
 10. dj contains 292 consecutive trading days of the Dow Jones Index. Use ddj <- diff(dj) to compute the daily changes in the index. Plot ddj and its ACF. Do the changes in the Dow Jones Index look like white noise?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question10}
+
+ddj <- diff(dj)
+str(ddj)
+
+autoplot(ddj)
+ggAcf(ddj)
+# can find that substantially less than 5% of autocorrelation values were outside of bounds. Therefore ddj can be white noise.
+
+```
+
