@@ -116,12 +116,31 @@ autoplot(goog) +
   ylab("Price(Unit: US$)")
 ```
 
-
-
 5. Use the ggseasonplot and ggsubseriesplot functions to explore the seasonal patterns in the following time series: writing, fancy, a10, h02.
 
- - What can you say about the seasonal patterns?
- - Can you identify any unusual years?
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question5}
+
+# - What can you say about the seasonal patterns?
+# - Can you identify any unusual years?
+
+ggseasonplot(writing)
+ggsubseriesplot(writing)
+# The sales amount of paper falls down in August annually
+
+ggseasonplot(fancy)
+ggsubseriesplot(fancy)
+# In December, 1992 the monthly sales for a souvenir shop increased dramatically compared to the same month of the last year
+
+ggseasonplot(a10)
+ggsubseriesplot(a10)
+# The amount of antidiabetes monthly scripts falls down in February annually
+
+ggseasonplot(h02)
+ggsubseriesplot(h02)
+# The amount of corticosteroid monthly scripts also falls down in February annually
+
+```
+
 
 6. Use the the following graphics functions: autoplot, ggseasonplot, ggsubseriesplot, gglagplot, ggAcf and explore features from the following time series: hsales, usdeaths, bricksq, sunspotarea, gasoline.
  - Can you spot any seasonality, cyclicity and trend?
