@@ -191,8 +191,33 @@ ggAcf(gasoline, lag.max = 1000)
 
 
 7. The arrivals data set comprises quarterly international arrivals (in thousands) to Australia from Japan, New Zealand, UK and the US.
- - Use autoplot, ggseasonplot and ggsubseriesplot to compare the differences between the arrivals from these four countries.
- - Can you identify any unusual observations?
+ 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question7}
+
+# See the structure of arrivals
+str(arrivals)
+
+# - Use autoplot, ggseasonplot and ggsubseriesplot to compare the differences between the arrivals from these four countries.
+# - Can you identify any unusual observations?
+autoplot(arrivals)
+# The biggest number of arrivals came from New Zealand in 1980s. And the title owner country changed to Japan in 1990s and came back to UK in 2000s.
+# The arrival data of UK shows the biggest quarterly fluctuation.
+
+ggseasonplot(arrivals[, "Japan"])
+ggseasonplot(arrivals[, "NZ"])
+ggseasonplot(arrivals[, "UK"])
+ggseasonplot(arrivals[, "US"])
+
+ggsubseriesplot(arrivals[, "Japan"])
+ggsubseriesplot(arrivals[, "NZ"])
+ggsubseriesplot(arrivals[, "UK"])
+ggsubseriesplot(arrivals[, "US"])
+# The arrivals from Japan decrease a lot in 2nd quarter compared to the other quarteres.
+# The arrivals from New Zealand are highest in 3rd quarter and lowest in 1st quarter.
+# The arrivals from UK and US are low in 2nd and 3rd quarters and high in 1st and 4th quarters.
+
+```
+
 
 9. The pigs data shows the monthly total number of pigs slaughtered in Victoria, Australia, from Jan 1980 to Aug 1995. Use mypigs <- window(pigs, start=1990) to select the data starting from 1990. Use autoplot and ggAcf for mypigs series and compare these to white noise plots from Figures 2.15 and 2.16.
 
