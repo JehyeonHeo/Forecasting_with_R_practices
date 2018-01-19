@@ -95,8 +95,28 @@ ggAcf(myts)
 
 4. Create time plots of the following times series: bicoal, chicken, dole, usdeaths, lynx, goog, writing, fancy, a10, h02.
 
- - Use help() to find out about the data in each series.
- - For the goog plot, modify the axis labels and title.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question4}
+
+# - Use help() to find out about the data in each series.
+help(bicoal)
+help(chicken)
+help(dole)
+help(usdeaths)
+help(lynx)
+help(goog)
+help(writing)
+help(fancy)
+help(a10)
+help(h02)
+
+# - For the goog plot, modify the axis labels and title.
+autoplot(goog) +
+  ggtitle("Daily closing stock prices of Google Inc.") +
+  xlab("Time") +
+  ylab("Price(Unit: US$)")
+```
+
+
 
 5. Use the ggseasonplot and ggsubseriesplot functions to explore the seasonal patterns in the following time series: writing, fancy, a10, h02.
 
