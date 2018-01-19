@@ -66,20 +66,32 @@ autoplot(mytimeseries)
 
 3. Download some monthly Australian retail data from OTexts.org/fpp2/extrafiles/retail.xlsx. These represent retail sales in various categories for different Australian states, and are stored in a MS-Excel file.
 
- a. You can read the data into R with the following script:
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question3}
 
-retaildata <- readxl::read_excel("retail.xlsx", skip=1)
-You may need to first install the readxl package. The second argument (skip=1) is required because the Excel sheet has two header rows.
+# a. You can read the data into R with the following script:
 
- b. Select one of the time series as follows (but replace the column name with your own chosen column):
+retaildata <- xlsx::read.xlsx("retail.xlsx", sheetIndex = 1, startRow = 2)
+View(retaildata)
+# retaildata <- readxl::read_excel("retail.xlsx", skip=1)
+
+# You may need to first install the readxl package. The second argument (skip=1) is required because the Excel sheet has two header rows.
+
+# b. Select one of the time series as follows (but replace the column name with your own chosen column):
 
 myts <- ts(retaildata[,"A3349873A"], frequency=12, start=c(1982,4))
 
- c. Explore your chosen retail time series using the following functions:
+# c. Explore your chosen retail time series using the following functions: autoplot, ggseasonplot, ggsubseriesplot, gglagplot, ggAcf
+#Can you spot any seasonality, cyclicity and trend? What do you learn about the series?
 
-autoplot, ggseasonplot, ggsubseriesplot, gglagplot, ggAcf
+autoplot(myts)
+ggseasonplot(myts)
+ggsubseriesplot(myts)
+gglagplot(myts, lags = 12)
+ggAcf(myts)
 
-Can you spot any seasonality, cyclicity and trend? What do you learn about the series?
+# I can see seasonality and trend of the data
+
+```
 
 4. Create time plots of the following times series: bicoal, chicken, dole, usdeaths, lynx, goog, writing, fancy, a10, h02.
 
