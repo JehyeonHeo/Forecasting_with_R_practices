@@ -143,8 +143,52 @@ ggsubseriesplot(h02)
 
 
 6. Use the the following graphics functions: autoplot, ggseasonplot, ggsubseriesplot, gglagplot, ggAcf and explore features from the following time series: hsales, usdeaths, bricksq, sunspotarea, gasoline.
- - Can you spot any seasonality, cyclicity and trend?
- - What do you learn about the series?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question6}
+
+# - Can you spot any seasonality, cyclicity and trend?
+# - What do you learn about the series?
+
+autoplot(hsales)
+ggseasonplot(hsales)
+ggsubseriesplot(hsales)
+gglagplot(hsales)
+ggAcf(hsales, lag.max = 400)
+# can spot seasonality and cyclicity. The cycle period is about 4 years(100 months)
+
+autoplot(usdeaths)
+ggseasonplot(usdeaths)
+ggsubseriesplot(usdeaths)
+gglagplot(usdeaths)
+ggAcf(usdeaths, lag.max = 60)
+# can spot seasonality
+
+autoplot(bricksq)
+ggseasonplot(bricksq)
+ggsubseriesplot(bricksq)
+gglagplot(bricksq)
+ggAcf(bricksq, lag.max = 200)
+# can spot little seasonality and strong trend
+
+autoplot(sunspotarea)
+# ggseasonplot(sunspotarea) 
+# not seasonal, can't draw it
+# ggsubseriesplot(sunspotarea)
+# not seasonal, useless to draw it
+gglagplot(sunspotarea)
+ggAcf(sunspotarea, lag.max = 50)
+# can spot strong cyclicity
+
+autoplot(gasoline)
+ggseasonplot(gasoline)
+# ggsubseriesplot(gasoline)
+# The number of weeks is 52 and it looked like it is too much for subseriesplot
+gglagplot(gasoline)
+ggAcf(gasoline, lag.max = 1000)
+# can spot seasonality and trend
+
+```
+
 
 7. The arrivals data set comprises quarterly international arrivals (in thousands) to Australia from Japan, New Zealand, UK and the US.
  - Use autoplot, ggseasonplot and ggsubseriesplot to compare the differences between the arrivals from these four countries.
