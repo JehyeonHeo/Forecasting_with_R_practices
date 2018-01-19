@@ -227,5 +227,15 @@ ggsubseriesplot(arrivals[, "US"])
   - Figure 2.16
  ![Fig 2.16 ACF of White Noise Time Series](https://www.otexts.org/fpp2/fpp_files/figure-html/wnoiseacf-1.png)
  
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question9}
+
+mypigs <- window(pigs, start=1990)
+str(mypigs)
+
+autoplot(mypigs)
+ggAcf(mypigs)
+# can find that 3 autocorrelation values were outside of bounds. Therefore mypigs isn't probably white noise.
+
+``` 
  
 10. dj contains 292 consecutive trading days of the Dow Jones Index. Use ddj <- diff(dj) to compute the daily changes in the index. Plot ddj and its ACF. Do the changes in the Dow Jones Index look like white noise?
