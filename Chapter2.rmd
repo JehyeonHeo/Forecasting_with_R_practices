@@ -40,22 +40,29 @@ gold[which.max(gold)]
 
 2. Download the file tute1.csv from OTexts.org/fpp2/extrafiles/tute1.csv, open it in Excel (or some other spreadsheet application), and review its contents. You should find four columns of information. Columns B through D each contain a quarterly series, labelled Sales, AdBudget and GDP. Sales contains the quarterly sales for a small company over the period 1981-2005. AdBudget is the advertising budget and GDP is the gross domestic product. All series have been adjusted for inflation.
 
- a. You can read the data into R with the following script:
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question2}
+
+# a. You can read the data into R with the following script:
 
 tute1 <- read.csv("tute1.csv", header=TRUE)
 View(tute1)
 
- b. Convert the data to time series
+# b. Convert the data to time series
 
 mytimeseries <- ts(tute1[,-1], start=1981, frequency=4)
 
-(The [,-1] removes the first column which contains the quarters as we don't need them now.)
+# (The [,-1] removes the first column which contains the quarters as we don't need them now.)
 
- c. Construct time series plots of each of the three series
+# c. Construct time series plots of each of the three series
 
 autoplot(mytimeseries, facets=TRUE)
 
-Check what happens when you don't include facets=TRUE.
+# Check what happens when you don't include facets=TRUE.
+
+autoplot(mytimeseries)
+
+```
+
 
 3. Download some monthly Australian retail data from OTexts.org/fpp2/extrafiles/retail.xlsx. These represent retail sales in various categories for different Australian states, and are stored in a MS-Excel file.
 
