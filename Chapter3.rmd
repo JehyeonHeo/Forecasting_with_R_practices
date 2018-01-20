@@ -51,6 +51,35 @@ autoplot(BoxCox(cangas, lambda_cangas))
 
 3. What Box-Cox transformation would you select for your retail data (from Exercise 3 in Section 2.10)?
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question3}
+
+retaildata <- xlsx::read.xlsx("retail.xlsx", sheetIndex = 1, startRow = 2)
+myts <- ts(retaildata[,"A3349873A"], frequency=12, start=c(1982,4))
+
+lambda_retail <- BoxCox.lambda(myts)
+print(c("selected lambda:", lambda_retail))
+
+fc_retail <- rwf(myts, 
+                 drift = TRUE, 
+                 lambda = lambda_retail,
+                 h = 50,
+                 level = 80)
+
+fc_retail_biasadj <- rwf(myts, 
+                         drift = TRUE, 
+                         lambda = lambda_retail,
+                         h = 50,
+                         level = 80,
+                         biasadj = TRUE)
+
+autoplot(myts) +
+  autolayer(fc_retail, series = "Simple Back Transform") +
+  autolayer(fc_retail_biasadj$mean, series = "Bias Adjusted") +
+  guides(colour = guide_legend(title = "Forecast"))
+# It would be better to choose bias adjusted Box-Cox Transformation with lambda = 0.128
+
+```
+
 4. For each of the following series, make a graph of the data. If transforming seems appropriate, do so and describe the effect. dole, usdeaths, bricksq.
 
 5. Calculate the residuals from a seasonal naïve forecast applied to the quarterly Australian beer production data from 1992. The following code will help.
