@@ -39,6 +39,16 @@ autoplot(BoxCox(enplanements, lambda_enplanements))
 
 2. Why is a Box-Cox transformation unhelpful for the cangas data?
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question2}
+
+autoplot(cangas)
+
+lambda_cangas <- BoxCox.lambda(cangas)
+autoplot(BoxCox(cangas, lambda_cangas))
+# can see that Box-Cox transformation doesn't yield simpler model
+
+```
+
 3. What Box-Cox transformation would you select for your retail data (from Exercise 3 in Section 2.10)?
 
 4. For each of the following series, make a graph of the data. If transforming seems appropriate, do so and describe the effect. dole, usdeaths, bricksq.
