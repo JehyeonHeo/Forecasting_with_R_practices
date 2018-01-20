@@ -82,6 +82,26 @@ autoplot(myts) +
 
 4. For each of the following series, make a graph of the data. If transforming seems appropriate, do so and describe the effect. dole, usdeaths, bricksq.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question4}
+
+autoplot(dole)
+lambda_dole <- BoxCox.lambda(dole)
+autoplot(BoxCox(dole, lambda_dole))
+# For dole data, it looked like using Box-Cox Transformation would be better to see the pattern
+
+autoplot(usdeaths)
+lambda_usdeaths <- BoxCox.lambda(usdeaths)
+autoplot(BoxCox(usdeaths, lambda_usdeaths))
+# For usdeaths data, it looked like it is meaningless to transform it
+
+autoplot(bricksq)
+lambda_bricksq <- BoxCox.lambda(bricksq)
+autoplot(BoxCox(bricksq, lambda_bricksq))
+# For bricksq data, it looked like it is meaningless to transform it
+
+```
+
+
 5. Calculate the residuals from a seasonal naïve forecast applied to the quarterly Australian beer production data from 1992. The following code will help.
 
 beer <- window(ausbeer, start=1992)
