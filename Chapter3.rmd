@@ -1,10 +1,41 @@
 # Chapter 3
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Load_packages}
+
+library(fpp2)
+
+```
+
 1. For the following series, find an appropriate Box-Cox transformation in order to stabilize the variance.
- - usnetelec
- - usgdp
- - mcopper
- - enplanements
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question1}
+
+# - usnetelec
+lambda_usnetelec <- BoxCox.lambda(usnetelec)
+print(c("Good value of lambda for usnetelec: ", 
+        lambda_usnetelec))
+autoplot(BoxCox(usnetelec, lambda_usnetelec))
+
+# - usgdp
+lambda_usgdp <- BoxCox.lambda(usgdp)
+print(c("Good value of lambda for usgdp: ", 
+      lambda_usgdp))
+autoplot(BoxCox(usgdp, lambda_usgdp))
+
+# - mcopper
+lambda_mcopper <- BoxCox.lambda(mcopper)
+print(c("Good value of lambda for mcopper: ", 
+      lambda_mcopper))
+autoplot(BoxCox(mcopper, lambda_mcopper))
+
+# - enplanements
+lambda_enplanements <- BoxCox.lambda(enplanements)
+print(c("Good value of lambda for enplanements: ", 
+      lambda_enplanements))
+autoplot(BoxCox(enplanements, lambda_enplanements))
+
+```
+
 
 2. Why is a Box-Cox transformation unhelpful for the cangas data?
 
