@@ -102,7 +102,9 @@ autoplot(BoxCox(bricksq, lambda_bricksq))
 ```
 
 
-5. Calculate the residuals from a seasonal naïve forecast applied to the quarterly Australian beer production data from 1992. The following code will help.
+5. Calculate the residuals from a seasonal naïve forecast applied to the quarterly Australian beer production data from 1992. Test if the residuals are white noise and normally distributed. What do you conclude?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question5}
 
 beer <- window(ausbeer, start=1992)
 fc <- snaive(beer)
@@ -110,11 +112,12 @@ autoplot(fc)
 res <- residuals(fc)
 autoplot(res)
 
-Test if the residuals are white noise and normally distributed.
-
 checkresiduals(fc)
 
-What do you conclude?
+# When just see the result of ACF, it looked like the residuals aren't white noise because of 4-lagged value. And Ljung-Box test shows that it is statistically signigicant. Therefore they aren't white noise. Also they aren't normally distributed.
+
+```
+
 
 6. Repeat the exercise for the WWWusage and bricksq data. Use whichever of naive or snaive is more appropriate in each case.
 
