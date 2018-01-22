@@ -169,32 +169,38 @@ answer
 
 8. For your retail time series (from Exercise 3 in Section 2.10):
 
- a. Split the data into two parts using
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question8}
+
+# a. Split the data into two parts using
 
 myts.train <- window(myts, end=c(2010,12))
 myts.test <- window(myts, start=2011)
 
- b. Check that your data have been split appropriately by producing the following plot.
+# b. Check that your data have been split appropriately by producing the following plot.
 
 autoplot(myts) + 
   autolayer(myts.train, series="Training") +
   autolayer(myts.test, series="Test")
 
- c. Calculate forecasts using snaive applied to myts.train.
+# c. Calculate forecasts using snaive applied to myts.train.
 
-fc <- snaive(myts.train)
+snaive_myts_train <- snaive(myts.train)
 
- d. Compare the accuracy of your forecasts against the actual values stored in myts.test.
+# d. Compare the accuracy of your forecasts against the actual values stored in myts.test.
 
-accuracy(fc,myts.test)
+accuracy(snaive_myts_train, myts.test)
  
- e. Check the residuals.
+# e. Check the residuals. Do the residuals appear to be uncorrelated and normally distributed?
 
-checkresiduals(fc)
+checkresiduals(snaive_myts_train)
+# residuals were correlated with each other and not normally distributed
 
-Do the residuals appear to be uncorrelated and normally distributed?
+# f. How sensitive are the accuracy measures to the training/test split?
 
- f. How sensitive are the accuracy measures to the training/test split?
+# Compared between the ratios of the test set error to the train set error, it looked like Mean Error is highly sensitive, RMSE, MAE, MPE, MASE are sensitive and MAPE and ACF1 aren't much sensitive.
+# I don't know whether this method is what the author wanted to solve this question.
+
+```
 
 9. vn contains quarterly visitor nights (in millions) from 1998-2015 for eight regions of Australia.
 
