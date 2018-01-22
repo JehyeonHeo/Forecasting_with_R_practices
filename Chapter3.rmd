@@ -155,6 +155,18 @@ checkresiduals(naive_bricksq)
  d. If your model doesn't forecast well, you should make it more complicated.
  e. Always choose the model with the best forecast accuracy as measured on the test set.
 
+answer 
+
+- a. It is useful to have normally distributed residuals, but it isn't necessary for good forecast methods to have them.
+
+ - b. Good forecast methods don't need to have small residuals. But their residuals should be uncorrelated and have zero mean.
+ 
+ - c. The best measure of forecast accuracy is different case by case.
+ 
+ - d. More complicated forecast method doesn't guarantee better forecast.
+ 
+ - e. When choosing the model, whether the residuals have zero mean and they are uncorrelated with each other is also considered. Simply choosing best accuracy model isn't good.
+
 8. For your retail time series (from Exercise 3 in Section 2.10):
 
  a. Split the data into two parts using
