@@ -121,6 +121,32 @@ checkresiduals(fc)
 
 6. Repeat the exercise for the WWWusage and bricksq data. Use whichever of naive or snaive is more appropriate in each case.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question6}
+
+snaive_www <- snaive(WWWusage, h = 15)
+autoplot(snaive_www)
+checkresiduals(snaive_www)
+
+naive_www <- naive(WWWusage)
+autoplot(naive_www)
+checkresiduals(naive_www)
+
+# When just see the result of ACF, it looked like the residuals aren't white noise because of out of bound values. And Ljung-Box test shows that they are statistically signigicant for both of methods. Therefore they aren't white noise. And the distribution of residuals aren't normal, too.
+# If I need to choose between above 2 methods, I will choose naive method because there isn't any particular seasonal pattern in the data and the Q values of Ljung-Box test were same for both methods.
+
+snaive_bricksq <- snaive(bricksq)
+autoplot(snaive_bricksq)
+checkresiduals(snaive_bricksq)
+
+naive_bricksq <- naive(bricksq)
+autoplot(naive_bricksq)
+checkresiduals(naive_bricksq)
+
+# For both of methods, Ljung-Box test results show that the residuals aren't white noise. And the residuals didn't have normal distribution, too.
+# If I need to choose between above 2 methods, I will choose snaive method because I can see the seasonality in the data and the Q value of Ljung-Box of snaive methods was less than the value of naive method.
+
+```
+
 7. Are the following statements true or false? Explain your answer.
 
  a. Good forecast methods should have normally distributed residuals.
