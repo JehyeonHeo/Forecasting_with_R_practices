@@ -204,11 +204,32 @@ checkresiduals(snaive_myts_train)
 
 9. vn contains quarterly visitor nights (in millions) from 1998-2015 for eight regions of Australia.
 
- a. Use window() to create three training sets for vn[,"Melbourne"], omitting the last 1, 2 and 3 years; call these train1, train2, and train3, respectively. For example train1 <- window(vn[, "Melbourne"], end = c(2014, 4)).
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question9}
 
- b. Compute one year of forecasts for each training set using the snaive() method. Call these fc1, fc2 and fc3, respectively.
+# a. Use window() to create three training sets for vn[,"Melbourne"], omitting the last 1, 2 and 3 years; call these train1, train2, and train3, respectively. For example train1 <- window(vn[, "Melbourne"], end = c(2014, 4)).
+vn_Melbourne_train1 <- window(vn[, "Melbourne"], end = c(2014, 4))
+vn_Melbourne_train2 <- window(vn[, "Melbourne"], end = c(2013, 4))
+vn_Melbourne_train3 <- window(vn[, "Melbourne"], end = c(2012, 4))
 
- c. Use accuracy() to compare the MAPE over the three test sets. Comment on these.
+# b. Compute one year of forecasts for each training set using the snaive() method. 
+snaive_vn_Melbourne_train1 <- snaive(vn_Melbourne_train1, h = 4)
+snaive_vn_Melbourne_train2 <- snaive(vn_Melbourne_train2, h = 4)
+snaive_vn_Melbourne_train3 <- snaive(vn_Melbourne_train3, h = 4)
+
+# c. Use accuracy() to compare the MAPE over the three test sets. Comment on these.
+vn_Melbourne_test1 <- window(vn[, "Melbourne"], start = c(2015, 1), end = c(2015, 4))
+vn_Melbourne_test2 <- window(vn[, "Melbourne"], start = c(2014, 1), end = c(2014, 4))
+vn_Melbourne_test3 <- window(vn[, "Melbourne"], start = c(2013, 1), end = c(2013, 4))
+
+accuracy(snaive_vn_Melbourne_train1, vn_Melbourne_test1)
+writeLines("")
+accuracy(snaive_vn_Melbourne_train2, vn_Melbourne_test2)
+writeLines("")
+accuracy(snaive_vn_Melbourne_train3, vn_Melbourne_test3)
+
+# MAPE was smallest for 2015 prediction and biggest for 2014 prediction. MAPE became smaller in 2013 prediction, but it wan't smaller than the one for 2015.
+```
+
 
 10. Use the Dow Jones index (data set dowjones) to do the following:
 
