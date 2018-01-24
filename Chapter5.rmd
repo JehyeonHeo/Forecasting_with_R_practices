@@ -10,21 +10,72 @@ library(fpp2)
 
 daily20 <- head(elecdaily,20)
 
-a. Plot the data and find the regression model for Demand with temperature as an explanatory variable. Why is there a positive relationship?
-b. Produce a residual plot. Is the model adequate? Are there any outliers or influential observations?
-c. Use the model to forecast the electricity demand that you would expect for the next day if the maximum temperature was 15??? and compare it with the forecast if the with maximum temperature was 35???. Do you believe these forecasts?
-d. Give prediction intervals for your forecasts. The following R code will get you started:
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question1}
 
-autoplot(daily20, facets=TRUE)
-daily20 %>% 
+# I need to make elecdaily because existing data is elecdemand and it has half-hourly electricity demand for Victoria, Australia.
+# Aggregate demand by sum and workday and temperature by mean. Set nfrequency as 365 to aggregate data for each day.
+elecdaily <- ts.union(
+  aggregate(elecdemand[, "Demand"], nfrequency = 365, FUN = sum),
+  aggregate(elecdemand[, !colnames(elecdemand) %in% c("Demand")], nfrequency = 365, FUN = mean)
+  )
+# Need to change the names of columns after aggregating.
+colnames(elecdaily) <- colnames(elecdemand)
+
+# It will be easier to aggregate if I know the index of the want-to-remove column
+#elecdemand[, -1]
+#elecdemand[, -c(2,3)]
+
+daily20 <- head(elecdaily, 20)
+daily20
+
+# a. Plot the data and find the regression model for Demand with temperature as an explanatory variable. Why is there a positive relationship?
+autoplot(daily20)
+
+# Use tslm function to find the regression model
+tslm_Dem_Temp <- tslm(Demand ~ Temperature, data = daily20)
+tslm_Dem_Temp
+
+# There is a positive relationship between the two variables. It looked like it happened because of air conditioner and fan. It's likely that as temperature increased, people wanted to run them and it increased the demand of electricity
+
+# A scatter plot of Demand against Temperature is shown below with the estimated regression line. This graph shows the positive relation a lot more clearly
+daily20 %>%
   as.data.frame() %>%
-  ggplot(aes(x=Temperature, y=Demand)) + 
+  ggplot(aes(x=Temperature, y=Demand)) +
+    ylab("Electricity Demand") +
+    xlab("Temperature") +
     geom_point() +
     geom_smooth(method="lm", se=FALSE)
-fit <- tslm(Demand ~ Temperature, data=daily20)
-checkresiduals(fit)
-forecast(fit, newdata=data.frame(Temperature=c(15,35)))
-e. Plot Demand vs Temperature for all of the available data in elecdaily. What does this say about your model?
+
+# b. Produce a residual plot. Is the model adequate? Are there any outliers or influential observations?
+checkresiduals(tslm_Dem_Temp$residuals)
+# I think that this model is adequate because residuals aren't correlated with each other. But there was an outlier.
+
+# c. Use the model to forecast the electricity demand that you would expect for the next day if the maximum temperature was 15 and compare it with the forecast if the with maximum temperature was 35. Do you believe these forecasts?
+fc_Dem_Temp <- forecast(tslm_Dem_Temp, 
+  newdata=data.frame(Temperature=c(15,35)))
+fc_Dem_Temp
+# I believe these forecasts because the temperature values were near the range of temperatures in the data
+
+# d. Give prediction intervals for your forecasts. The following R code will get you started:
+# 80% intervals
+fc_Dem_Temp$upper[, 1]
+fc_Dem_Temp$lower[, 1]
+# 95% intervals
+fc_Dem_Temp$upper[, 2]
+fc_Dem_Temp$lower[, 2]
+
+# e. Plot Demand vs Temperature for all of the available data in elecdaily. What does this say about your model?
+elecdaily %>%
+  as.data.frame() %>%
+  ggplot(aes(x=Temperature, y=Demand)) +
+    ylab("Electricity Demand") +
+    xlab("Temperature") +
+    geom_point() +
+    geom_smooth(method="lm", se=FALSE)
+# The result plot shows that the model was made with few data points. It could've explained the data of the first 20 days well, but it wasn't right model for total data points
+
+```
+
 
 2. Data set mens400 contains the winning times (in seconds) for the men's 400 meters final in each Olympic Games from 1896 to 2016.
 
