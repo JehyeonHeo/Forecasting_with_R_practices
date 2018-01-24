@@ -1,5 +1,11 @@
 # Chapter 5
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Load_packages}
+
+library(fpp2)
+
+```
+
 1. Daily electricity demand for Victoria, Australia, during 2014 is contained in elecdaily. The data for the first 20 days can be obtained as follows.
 
 daily20 <- head(elecdaily,20)
