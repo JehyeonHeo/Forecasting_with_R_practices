@@ -141,6 +141,22 @@ fc_mens400$lower
 
 3. Type easter(ausbeer) and interpret what you see.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question3}
+
+help("ausbeer")
+head(ausbeer)
+str(ausbeer)
+# Quarterly Australian beer production data. There are 218 data points.
+
+time(ausbeer)[c(1, length(ausbeer))]
+# start is 1st quarter of 1956 and the last is the 2nd quarter of 2010.
+
+easter(ausbeer)
+# easter function returns a vector of 0's or 1's or fractional parts in the observed time period. If full Easter holidays are in a time period, it returns 1, and returns 0 if there isn't any. If the holidays are extended from a period to the other, easter function returns fractional portions to each of them.
+
+```
+
+
 5. The data set fancy concerns the monthly sales figures of a shop which opened in January 1987 and sells gifts, souvenirs, and novelties. The shop is situated on the wharf at a beach resort town in Queensland, Australia. The sales volume varies with the seasonal population of tourists. There is a large influx of visitors to the town at Christmas and for the local surfing festival, held every March since 1988. Over time, the shop has expanded its premises, range of products, and staff.
 
 a. Produce a time plot of the data and describe the patterns in the graph. Identify any unusual or unexpected fluctuations in the time series.
