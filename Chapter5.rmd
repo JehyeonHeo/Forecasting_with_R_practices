@@ -79,10 +79,65 @@ elecdaily %>%
 
 2. Data set mens400 contains the winning times (in seconds) for the men's 400 meters final in each Olympic Games from 1896 to 2016.
 
-a. Plot the winning time against the year. Describe the main features of the plot.
-b. Fit a regression line to the data. Obviously the winning times have been decreasing, but at what average rate per year?
-c. Plot the residuals against the year. What does this indicate about the suitability of the fitted line?
-d. Predict the winning time for the men's 400 meters final in the 2020 Olympics. Give a prediction interval for your forecasts. What assumptions have you made in these calculations?
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question2}
+
+# a. Plot the winning time against the year. Describe the main features of the plot.
+autoplot(mens400)
+# Feature1. Winning times in Olympic men's 400m track final had the trend of decreasing as time went on.
+# Feature2. Missing values occured.
+
+# b. Fit a regression line to the data. Obviously the winning times have been decreasing, but at what average rate per year?
+# Extract time part from mens400 time series to do linear modeling.
+time_mens400 <- time(mens400)
+tslm_mens400 <- tslm(mens400 ~ time_mens400, 
+                     data = mens400)
+
+# Show data with regression line
+autoplot(mens400) +
+  geom_abline(slope = tslm_mens400$coefficients[2],
+              intercept = tslm_mens400$coefficients[1],
+              colour = "red")
+
+# Get time decreasing rate
+tslm_mens400$coefficients[2]
+# The winning times have been decreasing at average rate of 0.06457 second per year.
+
+# c. Plot the residuals against the year. What does this indicate about the suitability of the fitted line?
+cbind(Time = time_mens400, 
+      Residuals = tslm_mens400$residuals) %>%
+  as.data.frame() %>%
+  ggplot(aes(x = Time, y = Residuals)) +
+    geom_point() +
+    ylab("Residuals of Regression Line(Unit:s)")
+# The residual plot shows that the regression model generally fitted well to the data. I can check it using checkresiduals function, too.
+checkresiduals(tslm_mens400)
+
+# d. Predict the winning time for the men's 400 meters final in the 2020 Olympics. Give a prediction interval for your forecasts. What assumptions have you made in these calculations?
+# I used lm function here to get prediction interval through forecast function. Forecast function can't calculate prediction interval when there is any missing values in the data.
+lm_mens400 <- lm(
+  mens400 ~ time_mens400, 
+  data = mens400,
+  na.action = na.exclude
+  )
+
+fc_mens400 <- forecast(
+  lm_mens400, 
+  newdata = data.frame(time_mens400 = 2020)
+  )
+
+autoplot(mens400) +
+  autolayer(fc_mens400, PI = TRUE)
+
+# Get 80% and 95% prediction intervals
+fc_mens400$upper
+fc_mens400$lower
+
+# 80% interval is from 40.45 to 43.63
+# 95% interval is from 39.55 to 44.53
+# But we need to consider that they were calculated from the assumption that the residuals from model were normally distributed. But we saw from the result of checkresiduals function that it isn't true.
+
+```
+
 
 3. Type easter(ausbeer) and interpret what you see.
 
