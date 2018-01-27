@@ -159,16 +159,131 @@ easter(ausbeer)
 
 5. The data set fancy concerns the monthly sales figures of a shop which opened in January 1987 and sells gifts, souvenirs, and novelties. The shop is situated on the wharf at a beach resort town in Queensland, Australia. The sales volume varies with the seasonal population of tourists. There is a large influx of visitors to the town at Christmas and for the local surfing festival, held every March since 1988. Over time, the shop has expanded its premises, range of products, and staff.
 
-a. Produce a time plot of the data and describe the patterns in the graph. Identify any unusual or unexpected fluctuations in the time series.
-b. Explain why it is necessary to take logarithms of these data before fitting a model.
-c. Use R to fit a regression model to the logarithms of these sales data with a linear trend, seasonal dummies and a "surfing festival" dummy variable.
-d. Plot the residuals against time and against the fitted values. Do these plots reveal any problems with the model?
-e. Do boxplots of the residuals for each month. Does this reveal any problems with the model?
-f. What do the values of the coefficients tell you about each variable?
-g. What does the Breusch-Godfrey test tell you about your model?
-h. Regardless of your answers to the above questions, use your regression model to predict the monthly sales for 1994, 1995, and 1996. Produce prediction intervals for each of your forecasts.
-i. Transform your predictions and intervals to obtain predictions and intervals for the raw data.
-j. How could you improve these predictions by modifying the model?
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question5}
+
+# a. Produce a time plot of the data and describe the patterns in the graph. Identify any unusual or unexpected fluctuations in the time series.
+autoplot(fancy)
+head(fancy, 50)
+# Sales generally increased from January to December. Sales increased dramatically in December. Sales in December increased as time went on, but in 1991, there was decresing. In most years, there were also unexpected increases in March but the size of increases were a lot smaller than what happened in December.
+
+# b. Explain why it is necessary to take logarithms of these data before fitting a model.
+# The size of the seasonal variations should be almost same across the whole series to fit a model. Fancy data shows that seasonal variations increased exponentially. Therefore it is necessary to take logarithms of the data.
+
+# c. Use R to fit a regression model to the logarithms of these sales data with a linear trend, seasonal dummies and a "surfing festival" dummy variable.
+# I'll do Box-Cox transformation for fancy data
+lambda <- BoxCox.lambda(fancy)
+
+# make "surfing_festival" dummy variable using time index of fancy. The value is 1 if the year is equal to or above 1988 and the month is March.
+Time <- time(fancy)
+surfing_festival <- c()
+for(i in 1:length(Time)){
+  month <- round(12*(Time[i] - floor(Time[i]))) + 1
+  year <- floor(Time[i])
+  if(year >= 1988 & month == 3){
+    surfing_festival[i] <- 1
+  } else {
+    surfing_festival[i] <- 0
+  }
+}
+# If I'd made surfing_festival as a list, I should've needed to use unlist function to make it as atomic vector, not nested list. tslm function can get vector or factor but it cannot get nested list.
+
+tslm_BoxCox_fancy <- tslm(
+  fancy ~ trend + season + surfing_festival,
+  lambda = lambda
+  )
+# But when I added surfing_festival dummy variable, the interval of the residuals increased.
+
+# d. Plot the residuals against time and against the fitted values. Do these plots reveal any problems with the model?
+autoplot(tslm_BoxCox_fancy$residuals)
+# Residuals show pattern against time. It means that there is correlation between residuals and time.
+
+cbind(Residuals = tslm_BoxCox_fancy$residuals,
+      Fitted_values = tslm_BoxCox_fancy$fitted.values) %>%
+  as.data.frame() %>%
+  ggplot(aes(x = Fitted_values,
+             y = Residuals)) +
+    geom_point()
+# The size of residuals changed as we move along the x-axis. It means that there may be heteroscedacity in the errors which means that the variance of the residuals may not be constant. Maybe better transformation of the data is required.
+
+# e. Do boxplots of the residuals for each month. Does this reveal any problems with the model?
+cbind.data.frame(
+    Month = factor(
+      month.abb[round(12*(Time - floor(Time)) + 1)],
+      labels = month.abb,
+      ordered = TRUE
+    ),
+    Residuals = tslm_BoxCox_fancy$residuals
+    ) %>%
+  ggplot(aes(x = Month,
+             y = Residuals)) +
+    geom_boxplot()
+# If vectors are combined by cbind function, the type of the result is matrix, which should hold one type of data. If I need to make the columns to have different data types, I need to use cbind.data.frame function instead. Instead, if I still use cbind function, I need to use as.numeric function in mapping of ggplot.
+# If the mapping of boxplot is (factor x factor), it would be difficult to see any box because boxplot function can't aggregate factor type data. The result would be looked like a scatter plot.
+
+# To see the change of the residuals for each month, I use ggsubseriesplot function.
+ggsubseriesplot(tslm_BoxCox_fancy$residuals)
+
+# The distribution of the residuals were unsymetrical for some months. And for some month, the median of the residuals weren't 0(mean should be 0 for all months because getting the minimum SSE means getting mean). Residuals with such properties can't have normal distribution, which will make it difficult to get prediction interval.
+
+# f. What do the values of the coefficients tell you about each variable?
+tslm_BoxCox_fancy$coefficients
+# The model has positive trend. It means that as time went on, the sales increased generally. And all seasonal variables are positive. It means that the sales was minimum on January and the sales of the other months were greater than January for most of years. Finally, surfing_festival variable got 0.51 which isn't small compared to the others. It means that there were increased sales in March when surfing festival happened.
+
+# g. What does the Breusch-Godfrey test tell you about your model?
+checkresiduals(tslm_BoxCox_fancy)
+# The p value of the test is less than 0.05. It means that the residuals can be distinguished from white noise. The residuals can be correlated with each other.
+
+# h. Regardless of your answers to the above questions, use your regression model to predict the monthly sales for 1994, 1995, and 1996. Produce prediction intervals for each of your forecasts.
+# make surfing festival data for the months of 1994 to 1996.
+future_fancy <- rep(0, 36)
+for(i in 1:36){
+  if(i %% 12 == 3){
+    future_fancy[i] <- 1
+  }
+}
+# make future data as time series.
+future_fancy <- ts(data = future_fancy,
+                   start = 1994,
+                   end = c(1996, 12),
+                   frequency = 12)
+
+# forecast
+fc_tslm_BoxCox_fancy <- forecast(
+  tslm_BoxCox_fancy,
+  newdata = data.frame(Time = time(future_fancy),
+                       surfing_festival = future_fancy)
+)
+
+# plot the forecast
+autoplot(fc_tslm_BoxCox_fancy)
+
+# show prediction interval
+fc_tslm_BoxCox_fancy$upper
+fc_tslm_BoxCox_fancy$lower
+# The intervals on December were especially large.
+
+# i. Transform your predictions and intervals to obtain predictions and intervals for the raw data.
+tslm_fancy <- tslm(
+  fancy ~ trend + season + surfing_festival
+  )
+
+fc_tslm_fancy <- forecast(
+  tslm_fancy,
+  newdata = data.frame(Time = time(future_fancy),
+                       surfing_festival = future_fancy)
+)
+
+autoplot(fc_tslm_fancy)
+
+fc_tslm_fancy$upper
+fc_tslm_fancy$lower
+# The predictions are a lot less accurate than the transformed version.
+
+# j. How could you improve these predictions by modifying the model?
+# I could've improved the predictions by using Box-Cox transformation, one of lograrithm transfortion method. By using the method, the predictions could follow the exponential growth trend of the sales better.
+
+```
+
 
 6. The gasoline series consists of weekly data for supplies of US finished motor gasoline product, from 2 February 1991 to 20 January 2017. The units are in "thousand barrels per day". Consider only the data to the end of 2004.
 
