@@ -287,15 +287,160 @@ fc_tslm_fancy$lower
 
 6. The gasoline series consists of weekly data for supplies of US finished motor gasoline product, from 2 February 1991 to 20 January 2017. The units are in "thousand barrels per day". Consider only the data to the end of 2004.
 
-a. Fit a harmonic regression with trend to the data. Experiment with changing the number Fourier terms. Plot the observed gasoline and fitted values and comment on what you see.
-b. Select the appropriate number of Fourier terms to include by minimizing the AICc or CV value.
-c. Check the residuals of the final model using the checkresiduals() function. Even though the residuals fail the correlation tests, the results are probably not severe enough to make much difference to the forecasts and prediction intervals. (Note that the correlations are relatively small, even though they are significant.)
-d. To forecast using harmonic regression, you will need to generate the future values of the Fourier terms. This can be done as follows.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question7}
 
-fc <- forecast(fit, newdata=data.frame(fourier(x, K, h)))
+# a. Fit a harmonic regression with trend to the data. Experiment with changing the number Fourier terms. Plot the observed gasoline and fitted values and comment on what you see.
+str(gasoline)
+head(gasoline)
+# It is weekly data and it would be useful to make model with harmonic regression.
 
-where fit is the fitted model using tslm, K is the number of Fourier terms used in creating fit, and h is the forecast horizon required. Forecast the next year of data.
-e. Plot the forecasts along with the actual data for 2005. What do you find?
+# extract gasoline data up to the end of 2004 and plot it
+gasoline_until_2004 <- window(gasoline, end = 2005)
+autoplot(gasoline_until_2004, xlab = "Year")
+
+# make tslm model
+for(num in c(1, 2, 3, 5, 10, 20)){
+  #make variable names for each model using pair number.
+  var_name <- paste("tslm_ft",
+                    as.character(num),
+                    "_gasoline_until_2004",
+                    sep = "")
+  
+  #assign ts linear model to each variable name.
+  assign(var_name,
+         tslm(gasoline_until_2004 ~ trend + fourier(
+           gasoline_until_2004,
+           K = num
+           ))
+         )
+  
+  #plot the data and fitted values
+  print(
+    autoplot(gasoline_until_2004) +
+      autolayer(get(var_name)$fitted.values) +
+      ggtitle(var_name) +
+      ylab("gasoline") +
+      theme(legend.position = "none")
+  )
+}
+
+autoplot(gasoline_until_2004) +
+  autolayer(tslm_ft1_gasoline_until_2004$fitted.values, series = "1") +
+  autolayer(tslm_ft5_gasoline_until_2004$fitted.values, series = "2") +
+  autolayer(tslm_ft10_gasoline_until_2004$fitted.values, series = "3") +
+  autolayer(tslm_ft10_gasoline_until_2004$fitted.values, series = "5") +
+  autolayer(tslm_ft20_gasoline_until_2004$fitted.values, series = "10") +
+  autolayer(tslm_ft20_gasoline_until_2004$fitted.values, series = "20") +
+  guides(colour = guide_legend(title = "Fourier Transform pairs")) +
+  scale_color_discrete(breaks = c(1, 2, 3, 5, 10, 20))
+# as more pairs used, more the fitted line looked more like the original data. But the fitted lines didn't follow the trend well.
+
+# b. Select the appropriate number of Fourier terms to include by minimizing the AICc or CV value.
+for(i in c(1, 2, 3, 5, 10, 20)){
+  tslm_ft_gasoline_until_2004.name <- paste(
+    "tslm_ft", as.character(i), "_gasoline_until_2004",
+    sep = ""
+  )
+  writeLines(
+    paste(
+    "\n", tslm_ft_gasoline_until_2004.name, "\n"
+    )
+  )
+  print(CV(get(tslm_ft_gasoline_until_2004.name)))
+}
+
+# In the above 6 K values, 10 minimized the AICc and CV value.
+
+# Get exact number of Fourier pairs to minimize AICc or CV
+min_AICc <- Inf
+min_K_by_AICc <- 0
+min_CV <- Inf
+min_K_by_CV <- 0
+AICc_K <- 0
+CV_K <- 0
+
+# maximum number of pairs is 26 because the frequency of gasoline data is about 52.18
+for(num in 1:26){
+  AICc_K <- CV(
+    tslm(
+      gasoline_until_2004 ~ trend + fourier(gasoline_until_2004, K = num)
+    )
+  )[["AICc"]]
+  print(AICc_K)
+  CV_K <- CV(
+    tslm(
+      gasoline_until_2004 ~ trend + fourier(gasoline_until_2004, K = num)
+    )
+  )[["CV"]]
+  print(CV_K)
+  
+  # If both of the minimum values are found, the loop don't need to run anymore. Therefore print the result number of pairs and break the loop.
+  # If num = 1, don't run below codes and move to num = 2. With just the result of num = 1, I cannot know whether the AICc or CV is minimum.
+  if(num != 1){
+    if(AICc_K >= min_AICc & CV_K >= min_CV){
+      writeLines(
+        paste("The number of Fourier Transform pairs to minimize AICc",
+              "\n",
+              as.character(min_K_by_AICc)
+        )
+      )
+      writeLines(
+        paste("The number of Fourier Transform pairs to minimize CV",
+              "\n",
+              as.character(min_K_by_CV)
+        )
+      )
+      break
+    }
+  }
+  
+  # find the minimum AICc and CV and the number of pairs at the state.
+  if(AICc_K < min_AICc){
+    min_AICc <- AICc_K
+    min_K_by_AICc <- num
+  }
+  if(CV_K < min_CV){
+    min_CV <- CV_K
+    min_K_by_CV <- num
+  }
+}
+# To get minimum AICc or CV, I need 7 pairs.
+
+# c. Check the residuals of the final model using the checkresiduals() function. Even though the residuals fail the correlation tests, the results are probably not severe enough to make much difference to the forecasts and prediction intervals. (Note that the correlations are relatively small, even though they are significant.)
+tslm_ft7_gasoline_until_2004 <- tslm(
+  gasoline_until_2004 ~ trend + fourier(
+    gasoline_until_2004, 
+    K = 7
+    )
+  )
+
+checkresiduals(tslm_ft7_gasoline_until_2004)
+
+# d. To forecast using harmonic regression, you will need to generate the future values of the Fourier terms. This can be done as follows.
+
+fc_gasoline_2005 <- forecast(
+  tslm_ft7_gasoline_until_2004,
+  newdata=data.frame(fourier(
+    gasoline_until_2004, K = 7, h = 52)
+    )
+  )
+
+#where fit is the fitted model using tslm, K is the number of Fourier terms used in creating fit, and h is the forecast horizon required. Forecast the next year of data.
+
+# e. Plot the forecasts along with the actual data for 2005. What do you find?
+autoplot(fc_gasoline_2005) +
+  autolayer(window(
+    gasoline,
+    start = 2004,
+    end = 2006
+    )
+  ) +
+  scale_x_continuous(limits = c(2004, 2006))
+
+# Almost all of actual data were in the 80% prediction interval. But the model couldn't predict the sudden fall in the fall. The drop was a lot bigger than expected.
+
+```
+
 
 7. Data set huron gives the water level of Lake Huron in feet from 1875-1972.
 
