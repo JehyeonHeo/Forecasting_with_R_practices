@@ -75,6 +75,31 @@ autoplot(plastics_new, series = "Data") +
 
 3. Recall your retail time series data (from Exercise 3 in Section 2.10). Decompose the series using X11. Does it reveal any outliers, or unusual features that you had not noticed previously?
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question3}
+# Load retail.xlsx data
+library(xlsx)
+retail <- read.xlsx("retail.xlsx", 
+                    sheetIndex = 1,
+                    startRow = 2)
+head(retail)
+
+# change the retail data to ts object
+ts_retail <- ts(retail[,"A3349873A"], 
+                frequency=12, 
+                start=c(1982,4))
+
+# plot the data to see if there is a trend or seasonality.
+autoplot(ts_retail)
+# There are trend and seasonality.
+
+# Decompose the series using X11.
+x11_retail <- seas(ts_retail, x11 = "")
+
+autoplot(x11_retail)
+# there were some outliers that I didn't expect. Especially the biggest outlier happened in 2001. And I didn't expect the seasonality effect decreases as trend increases.
+
+```
+
 4. The result of decomposing the number of persons in the civilian labor force in Australia each month from February 1978 to August 1995 are shown below.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Question4_Figures}
