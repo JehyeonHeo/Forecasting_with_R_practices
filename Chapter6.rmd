@@ -113,7 +113,7 @@ library(fpp2)
 x11_labour <- seas(labour, x11 = "")
 
 autoplot(x11_labour) + xlab("Year") +
-  ggtitle("Classical additive decomposition of civilian labour force")
+  ggtitle("X11 additive decomposition of civilian labour force")
 
 # Second figure: ggsubseries plot of civilian labor force.
 ggsubseriesplot(seasonal(x11_labour)) +
