@@ -1,5 +1,12 @@
 # Chapter 6
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Load_packages}
+
+library(fpp2)
+library(seasonal)
+
+```
+
 2. The plastics data set consists of the monthly sales (in thousands) of product A for a plastics manufacturer for five years.
 a. Plot the time series of sales of product A. Can you identify seasonal fluctuations and/or a trend-cycle?
 b. Use a classical multiplicative decomposition to calculate the trend-cycle and seasonal indices.
