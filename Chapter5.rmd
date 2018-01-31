@@ -444,8 +444,90 @@ autoplot(fc_gasoline_2005) +
 
 7. Data set huron gives the water level of Lake Huron in feet from 1875-1972.
 
-a. Plot the data and comment on its features.
-b. Fit a linear regression and compare this to a piecewise linear trend model with a knot at 1915.
-c. Generate forecasts from these two models for the period upto 1980 and comment on these.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question7}
+
+# a. Plot the data and comment on its features.
+autoplot(huron)
+str(huron)
+head(huron)
+# There are lots of fluctuations that show some cyclic behaviour. And upto about 1930 there were downward trend, but after that, the trend disappeared.
+
+# b. Fit a linear regression and compare this to a piecewise linear trend model with a knot at 1915.
+h <- 8
+# simple linear regression
+tslm_huron <- tslm(huron ~ trend)
+fc_tslm_huron <- forecast(tslm_huron, h=h)
+
+# linear regression with log transformation
+tslm_log_huron <- tslm(huron ~ trend, 
+                          lambda = 0)
+fc_tslm_log_huron <- forecast(tslm_log_huron, h=h)
+
+# piecewise linear regression
+t <- time(huron)
+t.break <- 1915
+t_piece <- ts(pmax(0,t-t.break), start=1875)
+
+tslm_pw_huron <- tslm(huron ~ t + t_piece)
+  t_new <- t[length(t)]+seq(h)
+  t_piece_new <- t_piece[length(t_piece)]+seq(h)
+  
+newdata <- cbind(t=t_new,
+                 t_piece=t_piece_new) %>%
+  as.data.frame()
+
+fc_tslm_pw_huron <- forecast(
+  tslm_pw_huron,
+  newdata = newdata
+  )
+
+# cubic spline regression
+tslm_spline_huron <- splinef(huron, lambda = 0)
+fc_tslm_spline_huron <- forecast(
+  tslm_spline_huron,
+  newdata = newdata
+  )
+
+# plot the results
+autoplot(huron) +
+  forecast::autolayer(fitted(tslm_huron), series = "Linear") +
+  forecast::autolayer(fitted(tslm_log_huron), series="Logarithm") +
+  forecast::autolayer(fitted(tslm_pw_huron), series = "Piecewise") +
+  forecast::autolayer(fitted(tslm_spline_huron), series = "Cubic Spline") +
+  forecast::autolayer(fc_tslm_pw_huron, series="Piecewise") +
+  forecast::autolayer(fc_tslm_huron$mean, series = "Linear") +
+  forecast::autolayer(fc_tslm_log_huron$mean, series="Logarithm") +
+  forecast::autolayer(fc_tslm_spline_huron$mean, series="Cubic Spline") +
+  xlab("Year") +  ylab("Water level") +
+  ggtitle("Lake Huron water level change") +
+  guides(colour=guide_legend(title=" "))
+# It looked like spline model didn't catch the trend well. Linear model and log transformed linear model couldn't reflect the trend change around 1915.
+
+# c. Generate forecasts from these two models for the period upto 1980 and comment on these.
+autoplot(huron) +
+  forecast::autolayer(fitted(tslm_huron), series = "Linear") +
+  forecast::autolayer(fc_tslm_huron, series = "Linear") +
+  xlab("Year") +  ylab("Water level") +
+  ggtitle("Lake Huron water level change",
+          subtitle = "using Linear Regression model") +
+  guides(colour=guide_legend(title=" ")) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+autoplot(huron) +
+  forecast::autolayer(fitted(tslm_pw_huron), series = "Piecewise") +
+  forecast::autolayer(fc_tslm_pw_huron, series="Piecewise") +
+  xlab("Year") +  ylab("Water level") +
+  ggtitle("Lake Huron water level change",
+          subtitle = "using piecewise linear model") +
+  guides(colour=guide_legend(title=" ")) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+# Linear regression model shows that the point forecasts and the prediction intervals decrease as time goes on. It didn't reflect the trend change around 1915.
+# Piecewise linear regression model shows that the point forecasts and the prediction intervals are almost same even if time goes on. It reflected the trend change.
+
+```
+
 
 ### Question 4, 8 are related with math, not related with coding that I didn't include them in here.
