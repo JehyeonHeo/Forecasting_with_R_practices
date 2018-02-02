@@ -137,9 +137,70 @@ autoplot(labour, series="Data") +
 
 
 5. This exercise uses the cangas data (monthly Canadian gas production in billions of cubic metres, January 1960 - February 2005).
-a. Plot the data using autoplot, ggsubseriesplot and ggseasonplot to look at the effect of the changing seasonality over time. What do you think is causing it to change so much?
-b. Do an STL decomposition of the data. You will need to choose s.window to allow for the changing shape of the seasonal component.
-c. Compare the results with those obtained using SEATS and X11. How are they different?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question5}
+
+# a. Plot the data using autoplot, ggsubseriesplot and ggseasonplot to look at the effect of the changing seasonality over time. What do you think is causing it to change so much?
+autoplot(cangas)
+ggsubseriesplot(cangas)
+ggseasonplot(cangas)
+# The gas production increased in winter and decreased in summer. Maybe the cold weather in winter increased the demand for the gas that the production increased. But the production increased in summer as time went on. Maybe the demand for electricity to run air conditioner increased over time caused the situation. 
+
+# b. Do an STL decomposition of the data. You will need to choose s.window to allow for the changing shape of the seasonal component.
+stl_cangas <- stl(cangas, s.window = 13, robust = TRUE)
+
+# Show each STL decomposed component
+autoplot(stl_cangas) +
+  ggtitle("Monthly Canadian Gas Production",
+          subtitle = "STL decomposition")
+# can see that the size of seasonality increased in 1980s and decreased in 1990s.
+
+# (STL decomposition) See trend-cycle component and seasonally adjusted data along with original data.
+autoplot(cangas, series = "Data") +
+  autolayer(seasadj(stl_cangas), series = "Seasonally Adjusted") +
+  autolayer(trendcycle(stl_cangas), series = "Trend-cycle") +
+  ggtitle("Monthly Canadian gas production(STL decomposition)") +
+  ylab(expression(paste("Gas production (x", 10^{9}, m^{3}, ")"))) +
+  scale_color_manual(values = c("gray", "blue", "red"),
+                     breaks = c("Data", "Seasonally Adjusted", "Trend-cycle"))
+
+# c. Compare the results with those obtained using SEATS and X11. How are they different?
+x11_cangas <- seas(cangas, x11 = "")
+seats_cangas <- seas(cangas)
+
+# Show each X11 decomposed component
+autoplot(x11_cangas) +
+  ggtitle("Monthly Canadian Gas Production",
+          subtitle = "X11 decomposition")
+
+# (SEATS decomposition) See trend-cycle component and seasonally adjusted data along with original data.
+autoplot(cangas, series = "Data") +
+  autolayer(seasadj(x11_cangas), series = "Seasonally Adjusted") +
+  autolayer(trendcycle(x11_cangas), series = "Trend-cycle") +
+  ggtitle("Monthly Canadian gas production(X11 decomposition)") +
+  ylab(expression(paste("Gas production (x", 10^{9}, m^{3}, ")"))) +
+  scale_color_manual(values = c("gray", "blue", "red"),
+                     breaks = c("Data", "Seasonally Adjusted", "Trend-cycle"))
+
+# Show each X11 decomposed component
+autoplot(seats_cangas) +
+  ggtitle("Monthly Canadian Gas Production",
+          subtitle = "SEATS decomposition")
+
+# (X11 decomposition) See trend-cycle component and seasonally adjusted data along with original data.
+autoplot(cangas, series = "Data") +
+  autolayer(seasadj(seats_cangas), series = "Seasonally Adjusted") +
+  autolayer(trendcycle(seats_cangas), series = "Trend-cycle") +
+  ggtitle("Monthly Canadian gas production(SEATS decomposition)") +
+  ylab(expression(paste("Gas production (x", 10^{9}, m^{3}, ")"))) +
+  scale_color_manual(values = c("gray", "blue", "red"),
+                     breaks = c("Data", "Seasonally Adjusted", "Trend-cycle"))
+
+# seas function did multiplicative decomposition. Therefore seasonal component and remainder component have mean at 1, not 0. And the proportion of seasonality to trend decreased, increased and again decreased. 
+# From the plots, I could see that the seasonally adjusted data of STL decomposition is rougher than the ones of the other methods. It can mean that STL method is more robust and unusual observations affect the remainder component more when using STL method.
+
+```
+
 
 6. We will use the bricksq data (Australian quarterly clay brick production. 1956-1994) for this exercise.
 a. Use an STL decomposition to calculate the trend-cycle and seasonal indices. (Experiment with having fixed or changing seasonality.)
