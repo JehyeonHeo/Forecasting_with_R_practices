@@ -104,22 +104,21 @@ autoplot(x11_retail)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Question4_Figures}
 
-# Below figures aren't same with the originals.
-
 # First figure: Decomposition of the number of persons in the civilian labor force in Australia each month from February 1978 to August 1995.
 library(seasonal)
 library(fpp2)
 
-x11_labour <- seas(labour, x11 = "")
+stl_labour <- stl(labour, s.window = 13, robust = TRUE)
 
-autoplot(x11_labour) + xlab("Year") +
-  ggtitle("X11 additive decomposition of civilian labour force")
+autoplot(stl_labour) + xlab("Year") +
+  ggtitle("STL decomposition of civilian labour force")
 
 # Second figure: ggsubseries plot of civilian labor force.
-ggsubseriesplot(seasonal(x11_labour)) +
+ggsubseriesplot(seasonal(stl_labour)) +
   ylab("Seasonal")
 
 ```
+
 
 a. Write about 3-5 sentences describing the results of the seasonal adjustment. Pay particular attention to the scales of the graphs in making your interpretation.
 b. Is the recession of 1991/1992 visible in the estimated components?
