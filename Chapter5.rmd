@@ -317,10 +317,11 @@ for(num in c(1, 2, 3, 5, 10, 20)){
   #plot the data and fitted values
   print(
     autoplot(gasoline_until_2004) +
-      autolayer(get(var_name)$fitted.values) +
+      autolayer(get(var_name)$fitted.values,
+                series = as.character(num)) +
       ggtitle(var_name) +
       ylab("gasoline") +
-      theme(legend.position = "none")
+      guides(colour = guide_legend(title = "Number of Fourier Transform pairs"))
   )
 }
 
