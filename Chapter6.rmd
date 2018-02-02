@@ -119,9 +119,22 @@ ggsubseriesplot(seasonal(stl_labour)) +
 
 ```
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question4}
 
-a. Write about 3-5 sentences describing the results of the seasonal adjustment. Pay particular attention to the scales of the graphs in making your interpretation.
-b. Is the recession of 1991/1992 visible in the estimated components?
+# a. Write about 3-5 sentences describing the results of the seasonal adjustment. Pay particular attention to the scales of the graphs in making your interpretation.
+autoplot(labour, series="Data") +
+  autolayer(trendcycle(stl_labour), series="Trend") +
+  autolayer(seasadj(stl_labour), series="Seasonally Adjusted") +
+  xlab("Year") + ylab("Number of people") +
+  ggtitle("Number of people in the civilian labour force in Australia") +
+  scale_colour_manual(values=c("gray","blue","red"),
+                     breaks=c("Data","Seasonally Adjusted","Trend"))
+# Overall, the number of people in the civilian labour force in Australia increased over time. There were big recession around 1991 and 1992, and seasonally adjusted data followed the event. From ggsubseriesplot, I could find that there were relatively small changes for seasonal component over time compared to the original data scale. 
+
+# b. Is the recession of 1991/1992 visible in the estimated components?
+# It is seen in the remainder component.
+```
+
 
 5. This exercise uses the cangas data (monthly Canadian gas production in billions of cubic metres, January 1960 - February 2005).
 a. Plot the data using autoplot, ggsubseriesplot and ggseasonplot to look at the effect of the changing seasonality over time. What do you think is causing it to change so much?
