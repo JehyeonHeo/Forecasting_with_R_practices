@@ -79,10 +79,50 @@ sqrt(mean(ses_hardcover$residuals^2))
 
 
 6. 
-a. Now apply Holt's linear method to the paperback and hardback series and compute four-day forecasts in each case.
-b. Compare the RMSE measures of Holt's method for the two series to those of simple exponential smoothing in the previous question. (Remember that Holt's method is using one more parameter than SES.) Discuss the merits of the two forecasting methods for these data sets.
-c. Compare the forecasts for the two series using both methods. Which do you think is best?
-d. Calculate a 95% prediction interval for the first forecast for each series, using the RMSE values and assuming normal errors. Compare your intervals with those produced using ses and holt.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question6}
+
+# a. Now apply Holt's linear method to the paperback and hardback series and compute four-day forecasts in each case.
+holt_paperback <- holt(books[, "Paperback"], h = 4)
+holt_hardcover <- holt(books[, "Hardcover"], h = 4)
+
+autoplot(books[, "Paperback"]) +
+  autolayer(holt_paperback)
+
+autoplot(books[, "Hardcover"]) +
+  autolayer(holt_hardcover)
+# can see the linear trend in the forecasts.
+
+# b. Compare the RMSE measures of Holt's method for the two series to those of simple exponential smoothing in the previous question. (Remember that Holt's method is using one more parameter than SES.) Discuss the merits of the two forecasting methods for these data sets.
+s_paperback <- sqrt(mean(holt_paperback$residuals^2))
+s_hardcover <- sqrt(mean(holt_hardcover$residuals^2))
+
+s_paperback
+s_hardcover
+# For both series, RMSE values became lower when Holt's method was used.
+# If there is linearly approximable trend in data, it would be better to use Holt's linear method even if use one more parameter than SES. But if there isn't any particular trend in data, it would be better to use SES method to make the model simpler.
+
+# c. Compare the forecasts for the two series using both methods. Which do you think is best?
+# I think that the forecasts of hardcover sales were better than the ones of paperback sales. Because RMSE value is lower, and the forecasts of paperback sales couldn't reflect the pattern in the data using Holt's method.
+
+# d. Calculate a 95% prediction interval for the first forecast for each series, using the RMSE values and assuming normal errors. Compare your intervals with those produced using ses and holt.
+writeLines("95% PI of paperback sales calculated by holt function")
+holt_paperback$upper[1, "95%"]
+holt_paperback$lower[1, "95%"]
+
+writeLines("95% PI of paperback sales calculated by formula")
+holt_paperback$mean[1] + 1.96*s_paperback
+holt_paperback$mean[1] - 1.96*s_paperback
+
+writeLines("95% PI of hardcover sales calculated by holt function")
+holt_hardcover$upper[1, "95%"]
+holt_hardcover$lower[1, "95%"]
+
+writeLines("95% PI of hardcover sales calculated by formula")
+holt_hardcover$mean[1] + 1.96*s_hardcover
+holt_hardcover$mean[1] - 1.96*s_hardcover
+# In this case, the prediction interval for the first forecast for each series was almost same regardless of calculating method. It is different from the ses case, in which the PI was different when it was calculated respectively by ses function and formula.
+
+```
 
 
 7. For this exercise use data set eggs, the price of a dozen eggs in the United States from 1900-1993. Experiment with the various options in the holt() function to see how much the forecasts change with damped trend, or with a Box-Cox transformation. Try to develop an intuition of what each argument is doing to the forecasts.
