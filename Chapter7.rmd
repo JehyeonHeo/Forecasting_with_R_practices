@@ -10,7 +10,33 @@ library(seasonal)
 1. Consider the pigs series - the number of pigs slaughtered in Victoria each month.
  Use the ses function in R to find the optimal values of alpha and l0, and generate forecasts for the next four months.
 
- 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question1}
+
+str(pigs)
+head(pigs)
+
+ses_pigs <- ses(pigs, h = 4)
+
+# how SES model fitted
+ses_pigs$model
+
+# 95% prediction interval for the first forecast
+ses_pigs$upper[1, "95%"]
+ses_pigs$lower[1, "95%"]
+
+# calculate 95% prediction interval using formula
+s <- sd(ses_pigs$residuals)
+ses_pigs$mean[1] + 1.96*s
+ses_pigs$mean[1] - 1.96*s
+# even though small compared to the data scale, the results were a little different from the results of ses function. I don't know why.
+
+# plot the data, fitted values and forecasts.
+autoplot(ses_pigs) +
+  autolayer(ses_pigs$fitted)
+
+```
+
+
 2. Write your own function to implement simple exponential smoothing. The function should take arguments y (the time series), alpha (the smoothing parameter alpha) and level (the initial level l0). It should return the forecast of the next observation in the series. Does it give the same forecast as ses?
 
 
