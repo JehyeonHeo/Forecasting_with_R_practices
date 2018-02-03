@@ -327,4 +327,23 @@ autoplot(stlf_writing)
 
 8. Use stlf to produce forecasts of the fancy series with either method="naive" or method="rwdrift", whichever is most appropriate. Use the lambda argument if you think a Box-Cox transformation is required.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question8}
+str(fancy)
+head(fancy)
+
+autoplot(fancy)
+# There is increasing trend that it would be better to use rwdrift method for forecasting non-seasonal component.
+# And it would be better to do Box-Cox transformation to make the variation in the data about the same across the whole series.
+
+stlf_fancy <- stlf(fancy,
+                   s.window = 13,
+                   robust = TRUE,
+                   lambda = BoxCox.lambda(fancy),
+                   method = "rwdrift")
+
+autoplot(stlf_fancy)
+# The prediction intervals increase dramatically because of Box-Cox transformation. But without the transformation, the forecasts are unreasonable.
+
+```
+
 ### Question 1 is related with math, not related with coding that I didn't include them in here.
