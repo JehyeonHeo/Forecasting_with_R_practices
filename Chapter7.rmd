@@ -49,9 +49,33 @@ l0, and produces a forecast of the next observation in the series.
 
 5. Data set books contains the daily sales of paperback and hardcover books at the same store. The task is to forecast the next four days' sales for paperback and hardcover books.
 
-a. Plot the series and discuss the main features of the data.
-b. Use the ses function to forecast each series, and plot the forecasts.
-c. Compute the RMSE values for the training data in each case.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question5}
+
+# a. Plot the series and discuss the main features of the data.
+str(books)
+head(books)
+
+autoplot(books)
+# The sales of paperback and hardcover books generally increased as time went on with lots of fluctions. But the fluctuations don't show particular frequency that they can be thought of as cycle.
+
+# b. Use the ses function to forecast each series, and plot the forecasts.
+ses_paperback <- ses(books[, "Paperback"], h = 4)
+ses_hardcover <- ses(books[, "Hardcover"], h = 4)
+
+autoplot(books[, "Paperback"], series = "Paperback") +
+  autolayer(ses_paperback, series = "Paperback") +
+  autolayer(books[, "Hardcover"], series = "Hardcover") +
+  autolayer(ses_hardcover, series = "Hardcover", PI = FALSE) +
+  ylab("Sales amount") +
+  ggtitle("Sales of paperback and hardcover books")
+# can see the flat forecast by ses method.
+
+# c. Compute the RMSE values for the training data in each case.
+sqrt(mean(ses_paperback$residuals^2))
+sqrt(mean(ses_hardcover$residuals^2))
+# RMSE values for the training data show that the variance of the residuals of hardcover sales was smaller than the one of paperback sales.
+
+```
 
 
 6. 
