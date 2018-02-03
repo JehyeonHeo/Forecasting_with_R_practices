@@ -1,5 +1,12 @@
 # Chapter 7
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Load_packages}
+
+library(fpp2)
+library(seasonal)
+
+```
+
 1. Consider the pigs series - the number of pigs slaughtered in Victoria each month.
  Use the ses function in R to find the optimal values of alpha and l0, and generate forecasts for the next four months.
 
