@@ -306,6 +306,25 @@ autoplot(bricksq, series = "Original data") +
 
 7. Use stlf to produce forecasts of the writing series with either method="naive" or method="rwdrift", whichever is most appropriate. Use the lambda argument if you think a Box-Cox transformation is required.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question7}
+str(writing)
+head(writing)
+
+autoplot(writing)
+# can see that there are increasing trend in writing data. Therefore it would be better to use rwdrift method to forecast non-seasonal(seasonally adjusted) component.
+# I think that it would be better to do Box-Cox transformation to make the size of the seasonal variation in the data about the same across the whole series.
+
+stlf_writing <- stlf(writing, 
+                     s.window = 13, 
+                     robust = TRUE,
+                     lambda = BoxCox.lambda(writing),
+                     method = "rwdrift")
+
+autoplot(stlf_writing)
+
+```
+
+
 8. Use stlf to produce forecasts of the fancy series with either method="naive" or method="rwdrift", whichever is most appropriate. Use the lambda argument if you think a Box-Cox transformation is required.
 
 ### Question 1 is related with math, not related with coding that I didn't include them in here.
