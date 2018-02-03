@@ -131,6 +131,64 @@ holt_hardcover$mean[1] - 1.96*s_hardcover
 
 Which model gives the best RMSE?
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question7}
+
+str(eggs)
+head(eggs)
+
+autoplot(eggs)
+# see downward trend of the price of dozen eggs in US.
+# I expect that using holt function with damped = TRUE and Box-Cox options will yield best forecasts. Because I think that the price of eggs will decrease slower as the price is going to near 0 and there's a need to make the size of the seasonal variation smaller for bigger prices.
+
+# First, just use holt function without using any options.
+holt_eggs <- holt(eggs, h = 100)
+autoplot(holt_eggs) +
+  autolayer(holt_eggs$fitted)
+# Unrealistic because the price is predicted to be below 0.
+
+# Second, use holt function with using damped option.
+holt_damped_eggs <- holt(eggs, damped = TRUE, h = 100)
+autoplot(holt_damped_eggs) +
+  autolayer(holt_damped_eggs$fitted)
+# Now, the predicted price don't go below 0, but point forecasts didn't reflect the already existed trend.
+
+# Third, use holt function with using Box-Cox transformation.
+holt_BoxCox_eggs <- holt(eggs, 
+                         lambda = BoxCox.lambda(eggs), 
+                         h = 100)
+autoplot(holt_BoxCox_eggs) +
+  autolayer(holt_BoxCox_eggs$fitted)
+# Now, the point forecasts didn't go below 0 and reflected the already existed trend.
+
+# Fourth, use holt function with using Box-Cox transformation and damped option.
+holt_BoxCox_damped_eggs <- holt(
+  eggs, 
+  damped = TRUE,
+  lambda = BoxCox.lambda(eggs),
+  h = 100)
+autoplot(holt_BoxCox_damped_eggs) +
+  autolayer(holt_BoxCox_damped_eggs$fitted)
+# The point forecasts didn't go below 0 and still decreasing but it didn't reflect the already existed trend well. Least part of prediction intervals were below 0.
+
+# show RMSE values for each model
+writeLines("RMSE when using holt function")
+sqrt(mean(holt_eggs$residuals^2))
+
+writeLines("RMSE when using holt function with damped option")
+sqrt(mean(holt_damped_eggs$residuals^2))
+
+writeLines("RMSE when using holt function with Box-Cox transformation")
+sqrt(mean(holt_BoxCox_eggs$residuals^2))
+
+writeLines("RMSE when using holt function with damped option and Box-Cox transformation")
+sqrt(mean(holt_BoxCox_damped_eggs$residuals^2))
+
+# BoxCox transformation captures trend and reflects it to the forecasts. Therefore it improves accuracy of the model. Holt's method with damped option just prohibits the forecasts to be below 0, not much improving accuracy for fitting the original data part.
+
+# The best model was the Box-Cox transformation with Holt's linear method. It gave plausible point forecasts and prediction intervals. For 100 years prediction, Box-Cox transformation did enough damping effect. With damping option together, the point forecast couldn't follow the already existed trend.
+
+```
+
 
 8. Recall your retail time series data (from Exercise 3 in Section 2.10).
 
