@@ -80,6 +80,75 @@ writeLines(paste(
 
 3. Modify your function from the previous exercise to return the sum of squared errors rather than the forecast of the next observation. Then use the optim function to find the optimal values of alpha and l0. Do you get the same values as the ses function?
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question3}
+
+# modify SES function to return SSE
+SES <- function(pars = c(alpha, l0), y){
+  # change the first argument as vector of alpha and l0, rather than alpha and l0 each because optim function wants the function in function argument to have the first argument as vector.
+  error <- 0
+  SSE <- 0
+  alpha <- pars[1]
+  l0 <- pars[2]
+  y_hat <- l0
+  
+  for(index in 1:length(y)){
+    error <- y[index] - y_hat
+    SSE <- SSE + error^2
+    
+    y_hat <- alpha*y[index] + (1 - alpha)*y_hat 
+  }
+  
+  return(SSE)
+}
+
+# compare ses and SES using pigs data
+# set initial values as alpha = 0.5 and l0 = first observation value of data.
+opt_SES_pigs <- optim(par = c(0.5, pigs[1]), y = pigs, fn = SES)
+
+writeLines(paste(
+  "Optimal parameters for the result of SES function: ",
+  "\n",
+  as.character(opt_SES_pigs$par[1]),
+  ", ",
+  as.character(opt_SES_pigs$par[2]),
+  sep = ""
+  ))
+
+writeLines(paste(
+  "Parameters got from the result of ses function: ",
+  "\n",
+  as.character(ses_pigs$model$par[1]),
+  ", ",
+  as.character(ses_pigs$model$par[2]),
+  sep = ""
+))
+# In this case, alphas were almost same, but l0s were different. I think that it happened because the scale l0 is big.
+
+# compare ses and SES using ausbeer data
+# set initial values as alpha = 0.5 and l0 = first observation value of data.
+opt_SES_ausbeer <- optim(par = c(0.5, ausbeer[1]), y = ausbeer, fn = SES)
+
+writeLines(paste(
+  "Optimal parameters for the result of SES function: ",
+  "\n",
+  as.character(opt_SES_ausbeer$par[1]),
+  ", ",
+  as.character(opt_SES_ausbeer$par[2]),
+  sep = ""
+  ))
+
+writeLines(paste(
+  "Parameters got from the result of ses function: ",
+  "\n",
+  as.character(ses_ausbeer$model$par[1]),
+  ", ",
+  as.character(ses_ausbeer$model$par[2]),
+  sep = ""
+))
+# In this case, alphas were almost same regardless of used functions. And the same result for l0s.
+
+```
+
 
 4. Combine your previous two functions to produce a function which both finds the optimal values of alpha and  
 l0, and produces a forecast of the next observation in the series.
