@@ -39,6 +39,44 @@ autoplot(ses_pigs) +
 
 2. Write your own function to implement simple exponential smoothing. The function should take arguments y (the time series), alpha (the smoothing parameter alpha) and level (the initial level l0). It should return the forecast of the next observation in the series. Does it give the same forecast as ses?
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question2}
+
+# make SES function
+SES <- function(y, alpha, l0){
+  y_hat <- l0
+  for(index in 1:length(y)){
+   y_hat <- alpha*y[index] + (1 - alpha)*y_hat 
+  }
+  cat("Forecast of next observation by SES function: ",
+      as.character(y_hat),
+      sep = "\n")
+}
+
+# compare ses and SES using pigs data
+alpha <- ses_pigs$model$par[1]
+l0 <- ses_pigs$model$par[2]
+
+SES(pigs, alpha = alpha, l0 = l0)
+
+writeLines(paste(
+  "Forecast of next observation by ses function: ",       as.character(ses_pigs$mean[1])
+  ))
+
+# compare ses and SES using ausbeer data
+ses_ausbeer <- ses(ausbeer, h = 1)
+alpha <- ses_ausbeer$model$par[1]
+l0 <- ses_ausbeer$model$par[2]
+
+SES(ausbeer, alpha = alpha, l0 = l0)
+
+writeLines(paste(
+  "Forecast of next observation by ses function: ",       as.character(ses_ausbeer$mean[1])
+  ))
+
+# found that SES function, which I made worked same as ses function.
+
+```
+
 
 3. Modify your function from the previous exercise to return the sum of squared errors rather than the forecast of the next observation. Then use the optim function to find the optimal values of alpha and l0. Do you get the same values as the ses function?
 
