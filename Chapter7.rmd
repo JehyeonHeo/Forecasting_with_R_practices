@@ -365,11 +365,68 @@ sqrt(mean(holt_BoxCox_damped_eggs$residuals^2))
 
 8. Recall your retail time series data (from Exercise 3 in Section 2.10).
 
-a. Why is multiplicative seasonality necessary for this series?
-b. Apply Holt-Winters' multiplicative method to the data. Experiment with making the trend damped.
-c. Compare the RMSE of the one-step forecasts from the two methods. Which do you prefer?
-d. Check that the residuals from the best method look like white noise.
-e. Now find the test set RMSE, while training the model to the end of 2010. Can you beat the seasonal naïve approach from Exercise 7 in Section 3.7?
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question8}
+
+# load the data
+retail <- xlsx::read.xlsx("retail.xlsx",
+                          sheetIndex = 1,
+                          startRow = 2)
+
+ts_retail <- ts(retail[, "A3349873A"],
+                frequency = 12,
+                start = c(1982, 4))
+
+# a. Why is multiplicative seasonality necessary for this series?
+autoplot(ts_retail)
+# the data shows that the seasonality increased when the retail sales increased. Multiplicative seasonality can reflect the situation in the model, while additive seasonality can't.
+
+# b. Apply Holt-Winters' multiplicative method to the data. Experiment with making the trend damped.
+ets_AAM_retail <- hw(ts_retail,
+                     seasonal = "multiplicative")
+
+ets_AAdM_retail <- hw(ts_retail,
+                      seasonal = "multiplicative",
+                      damped = TRUE)
+
+autoplot(ets_AAM_retail)
+autoplot(ets_AAdM_retail)
+# The forecasts increased slower when used damped option than when did not.
+
+# c. Compare the RMSE of the one-step forecasts from the two methods. Which do you prefer?
+error_ets_AAM_retail <- tsCV(
+  ts_retail, 
+  hw, h = 1, seasonal = "multiplicative"
+  )
+
+error_ets_AAdM_retail <- tsCV(
+  ts_retail, 
+  hw, h = 1, seasonal = "multiplicative", damped = TRUE
+  )
+
+sqrt(mean(error_ets_AAM_retail^2, na.rm = TRUE))
+sqrt(mean(error_ets_AAdM_retail^2, na.rm = TRUE))
+# When compared the RMSE values, they were almost same. Therefore I prefer damped model because it will prohibit the limitless increase of sales forecast.
+
+# d. Check that the residuals from the best method look like white noise.
+checkresiduals(ets_AAdM_retail)
+# Unfortunately, the residuals from the best method don't look like white noise. Ljung-Box test result and ACF plot show that the residuals aren't white noise.
+
+# e. Now find the test set RMSE, while training the model to the end of 2010. Can you beat the seasonal naïve approach from Exercise 7 in Section 3.7?
+ts_retail_train <- window(ts_retail,
+                          end = c(2010, 12))
+ts_retail_test <- window(ts_retail,
+                         start = 2011)
+
+ets_AAdM_retail_train <- hw(ts_retail_train,
+                            seasonal = "multiplicative",
+                            damped = TRUE)
+
+autoplot(ets_AAdM_retail_train)
+accuracy(ets_AAdM_retail_train, ts_retail_test)
+# When I used Holt-Winters' method with damped option, I couldn't beat seasonal naive approach. But when I used the method with damped option, I could get almost same accuracy even if I couldn't beat it. 
+# In this case, damped Holt-Winters' method was worse than Holt-Winters' method because in the forecast horizon, the sales was exponentially increasing, not damping. I think that this case reflects the fact that the assumption behind the chosen forecast method should be right to forecast more accurately.
+
+```
 
 
 9. For the same retail data, try an STL decomposition applied to the Box-Cox transformed series, followed by ETS on the seasonally adjusted data. How does that compare with your best previous forecasts on the test set?
