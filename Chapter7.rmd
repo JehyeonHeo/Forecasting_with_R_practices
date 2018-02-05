@@ -153,6 +153,72 @@ writeLines(paste(
 4. Combine your previous two functions to produce a function which both finds the optimal values of alpha and  
 l0, and produces a forecast of the next observation in the series.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question4}
+
+# modify SES function to find the optimal values of alpha and l0, and produce the next observation forecast.
+SES <- function(init_pars, data){
+  # init_pars is c(init_alpha, init_l0)
+
+  # make next observation forecast variable
+  fc_next <- 0
+  
+  # make SSE function to get SSE if parameters and data are given.
+  SSE <- function(pars, data){
+    error <- 0
+    SSE <- 0
+    alpha <- pars[1]
+    l0 <- pars[2]
+    y_hat <- l0
+    
+    for(index in 1:length(data)){
+      error <- data[index] - y_hat
+      SSE <- SSE + error^2
+      
+      y_hat <- alpha*data[index] + (1 - alpha)*y_hat 
+    }
+    # use superassignment to make forecast value possible to use outside SSE function.
+    fc_next <<- y_hat
+    return(SSE)
+  }
+  
+  # use optim function to get optimal values of alpha and l0.
+  optim_pars <- optim(par = init_pars, data = data, fn = SSE)
+  
+  # return results
+  return(list(
+    Next_observation_forecast = fc_next,
+    alpha = optim_pars$par[1],
+    l0 = optim_pars$par[2]
+    ))
+}
+
+# compare the result using pigs data
+SES(c(0.5, pigs[1]), pigs)
+
+print("Next observation forecast by ses function")
+ses_pigs$mean[1]
+
+print("alpha calculated by ses function")
+ses_pigs$model$par[1]
+
+print("l0 calculated by ses function")
+ses_pigs$model$par[2]
+
+# compare the result using ausbeer data
+SES(c(0.5, ausbeer[1]), ausbeer)
+
+print("Next observation forecast by ses function")
+ses_ausbeer$mean[1]
+
+print("alpha calculated by ses function")
+ses_ausbeer$model$par[1]
+
+print("l0 calculated by ses function")
+ses_ausbeer$model$par[2]
+
+# SES function worked similar to ses function.
+
+```
 
 5. Data set books contains the daily sales of paperback and hardcover books at the same store. The task is to forecast the next four days' sales for paperback and hardcover books.
 
