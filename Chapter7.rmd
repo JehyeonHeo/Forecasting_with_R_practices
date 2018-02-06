@@ -418,12 +418,21 @@ ts_retail_test <- window(ts_retail,
                          start = 2011)
 
 ets_AAdM_retail_train <- hw(ts_retail_train,
+                            h = 36,
                             seasonal = "multiplicative",
                             damped = TRUE)
 
 autoplot(ets_AAdM_retail_train)
 accuracy(ets_AAdM_retail_train, ts_retail_test)
 # When I used Holt-Winters' method with damped option, I couldn't beat seasonal naive approach. But when I used the method with damped option, I could get almost same accuracy even if I couldn't beat it. 
+
+# try Holt-Winters' method.
+ets_AAM_retail_train <- hw(ts_retail_train,
+                           h = 36,
+                           seasonal = "multiplicative")
+
+autoplot(ets_AAM_retail_train)
+accuracy(ets_AAM_retail_train, ts_retail_test)
 # In this case, damped Holt-Winters' method was worse than Holt-Winters' method because in the forecast horizon, the sales was exponentially increasing, not damping. I think that this case reflects the fact that the assumption behind the chosen forecast method should be right to forecast more accurately.
 
 ```
