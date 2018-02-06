@@ -424,7 +424,7 @@ ets_AAdM_retail_train <- hw(ts_retail_train,
 
 autoplot(ets_AAdM_retail_train)
 accuracy(ets_AAdM_retail_train, ts_retail_test)
-# When I used Holt-Winters' method with damped option, I couldn't beat seasonal naive approach. But when I used the method with damped option, I could get almost same accuracy even if I couldn't beat it. 
+# When I used Holt-Winters' method with damped option, I couldn't beat seasonal naive approach. But when I used Holt-Winters' method without damped option, I could get better accuracy, but still couldn't beat the seasonal naive approach. 
 
 # try Holt-Winters' method.
 ets_AAM_retail_train <- hw(ts_retail_train,
