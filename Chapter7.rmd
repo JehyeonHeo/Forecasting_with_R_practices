@@ -485,14 +485,56 @@ accuracy(stl_ets_retail_train_without_tr, ts_retail_test)
 
 10. For this exercise use data set ukcars, the quarterly UK passenger vehicle production data from 1977Q1-2005Q1.
 
-a. Plot the data and describe the main features of the series.
-b. Decompose the series using STL and obtain the seasonally adjusted data.
-c. Forecast the next two years of the series using an additive damped trend method applied to the seasonally adjusted data. (This can be done in one step using stlf with arguments etsmodel="AAN", damped=TRUE.
-d. Forecast the next two years of the series using Holt's linear method applied to the seasonally adjusted data (as before but with damped=FALSE).
-e. Now use ets() to choose a seasonal model for the data.
-f. Compare the RMSE of the ETS model with the RMSE of the models you obtained using STL decompositions. Which gives the better in-sample fits?
-g. Compare the forecasts from the three approaches? Which seems most reasonable?
-h. Check the residuals of your preferred model.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question10}
+
+# a. Plot the data and describe the main features of the series.
+str(ukcars)
+head(ukcars)
+
+autoplot(ukcars)
+# The data has trend and quarterly seasonality.
+
+# b. Decompose the series using STL and obtain the seasonally adjusted data.
+seasadj_ukcars <- ukcars %>% stl(s.window = 4, robust = TRUE) %>% seasadj() 
+
+autoplot(seasadj_ukcars)
+# decreased much variations.
+
+# c. Forecast the next two years of the series using an additive damped trend method applied to the seasonally adjusted data. (This can be done in one step using stlf with arguments etsmodel="AAN", damped=TRUE.
+stl_ets_AAdN_ukcars <- ukcars %>% stlf(h = 8, etsmodel = "AAN", damped = TRUE)
+
+autoplot(stl_ets_AAdN_ukcars)
+
+# d. Forecast the next two years of the series using Holt's linear method applied to the seasonally adjusted data (as before but with damped=FALSE).
+stl_ets_AAN_ukcars <- ukcars %>% stlf(h = 8, etsmodel = "AAN", damped = FALSE)
+
+autoplot(stl_ets_AAN_ukcars)
+
+# e. Now use ets() to choose a seasonal model for the data.
+ets_ukcars <- ets(ukcars)
+summary(ets_ukcars)
+# got ETS(A, N, A) model.
+
+autoplot(forecast(ets_ukcars, h = 8))
+
+# f. Compare the RMSE of the ETS model with the RMSE of the models you obtained using STL decompositions. Which gives the better in-sample fits?
+writeLines("")
+print("Accuracy of STL + ETS(A, Ad, N) model")
+accuracy(stl_ets_AAdN_ukcars)
+print("Accuracy of STL + ETS(A, A, N) model")
+accuracy(stl_ets_AAN_ukcars)
+print("Accuracy of ETS(A, N, A) model")
+accuracy(ets_ukcars)
+# STL + ETS(A, Ad, N) was the best model.
+
+# g. Compare the forecasts from the three approaches? Which seems most reasonable?
+# I think that the forecasts from the STL + ETS(A, Ad, N) were the most reasonable ones. I think so because the forecasts reflected the not-increasing and smaller-variation trend after the fall of 2001 best.
+
+# h. Check the residuals of your preferred model.
+checkresiduals(stl_ets_AAdN_ukcars)
+# There are still some autocorrelations in the residuals. And they don't look like normally distributed.
+
+```
 
 
 11. For this exercise use data set visitors, the monthly Australian short-term overseas visitors data, May 1985-April 2005.
