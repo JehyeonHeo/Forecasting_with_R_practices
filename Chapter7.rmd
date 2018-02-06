@@ -654,6 +654,8 @@ sqrt(mean(tsCV(visitors, hw, h = 1,
 a. Apply tsCV() for a forecast horizon of h=4, for both ETS and seasonal naive methods to the cement data, XXX. (Hint: use the newly created fets and the existing snaive functions as your forecast function arguments.)
 b. Compute the MSE of the resulting 4-steps-ahead errors. (Hint: make sure you remove missing values.) Why is there missing values? Comment on which forecasts are more accurate. Is this what you expected?
 
+### cement data isn't time series data. And it looked like the data isn't related with time, too. Therefore I'll skip this question.
+### I can get numerator of MASE by tsCV and denominator of MASE by 1/(length(y) - k)*sum(abs(lag(y, k = -m) - y)).
 
 13. Compare ets, snaive and stlf on the following six time series. For stlf, you might need to use a Box-Cox transformation. Use a test set of three years to decide what gives the best forecasts. ausbeer, bricksq, dole, a10, h02, usmelec.
 
