@@ -440,6 +440,48 @@ accuracy(ets_AAM_retail_train, ts_retail_test)
 
 9. For the same retail data, try an STL decomposition applied to the Box-Cox transformed series, followed by ETS on the seasonally adjusted data. How does that compare with your best previous forecasts on the test set?
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question9}
+
+#stl_ets_retail_train <- ts_retail_train %>% 
+#  stl(s.window = 13, robust = TRUE) %>% 
+#  forecast(method = "ets", 
+#           h = 36,
+#           lambda = BoxCox.lambda(ts_retail_train))
+# Fitted values and forecasts of above code yields multiple squared values. It looked like the lambda in forecast function just do back-transform, not do transform and back-transform both. I wonder if the forecast function assumes that the object entered is already transformed if needed.
+
+stl_ets_retail_train <- ts_retail_train %>%
+  stlm(
+    #made stl model first
+    s.window = 13,
+    robust = TRUE,
+    #designate that the seasonally adjusted data should be forecasted by ETS method.
+    method = "ets",
+    lambda = BoxCox.lambda(ts_retail_train)
+  ) %>%
+  #forecast using stl model
+  forecast(h = 36)
+# I didn't need to use seasadj function because forecasts of STL objects are applying non-seasonal forecasting method to the seasonally adjusted data automatically.
+
+autoplot(stl_ets_retail_train)
+accuracy(stl_ets_retail_train, ts_retail_test)
+# STL decomposition with Box-Cox transformation and ETS forecasting yielded better result than when ETS(A, Ad, M) was used. But the method was a little worse than ETS(A, A, M). Of course, it couldn't beat seasonal naive method.
+
+# try forecasting without doing transformation.
+stl_ets_retail_train_without_tr <- ts_retail_train %>%
+  stlm(
+    s.window = 13,
+    robust = TRUE,
+    method = "ets"
+  ) %>%
+  forecast(h = 36)
+
+autoplot(stl_ets_retail_train_without_tr)
+accuracy(stl_ets_retail_train_without_tr, ts_retail_test)
+# Without doing transformation, when I got accuracy using test set I got better result. But I couldn't expect it because when I did transformation too, the accuracy of training set was better. Real datas in forecast horizon increased exponentially. Without using transformation, the forecast could reflect the fact that the bigger values have bigger variation and it was useful at forecasting at the time.
+
+# STL decomposition 'without' Box-Cox transformation and ETS forecasting yielded better result than when ETS(A, Ad, M) or ETS(A, A, M) was used. But the method also  couldn't beat seasonal naive method.
+
+```
 
 10. For this exercise use data set ukcars, the quarterly UK passenger vehicle production data from 1977Q1-2005Q1.
 
