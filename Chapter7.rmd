@@ -831,10 +831,35 @@ autoplot(fc_usmelec$models$ets) +
 ```
 
 14. 
-a. Use ets() on the following series:
 
-bicoal, chicken, dole, usdeaths, lynx, ibmclose, eggs.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question14}
 
-Does it always give good forecasts?
+# a. Use ets() on the following series:
+#bicoal, chicken, dole, usdeaths, lynx, ibmclose, eggs.
+#Does it always give good forecasts?
 
-b. Find an example where it does not work well. Can you figure out why?
+autoplot(forecast(ets(bicoal)))
+# I think that ETS(M, N, N) is not good. It won't be useful for forecasting. 
+
+autoplot(forecast(ets(chicken)))
+# I think that ETS(M, N, N) is not good. The price almost went to near 0 and no one knows whether it will go up or maintain or go down more. The model didn't yield helpful forecasting.
+
+autoplot(forecast(ets(dole)))
+# I think that ETS(M, A, M) is good. It reflected the increasing trend and existing small seasonality.
+
+autoplot(forecast(ets(usdeaths)))
+# I think that ETS(A, N, A) is good. It reflected the already existing seasonality.
+
+autoplot(forecast(ets(lynx)))
+# I think that ETS(M, N, N) is good except exponentially increasing prediction interval.
+
+autoplot(forecast(ets(ibmclose)))
+# I think that ETS(A, N, N) is not good. It won't be helpful much for forecasting. 
+
+autoplot(forecast(ets(eggs)))
+# I think that ETS(M, N, N) is not good. There were decreasing trend even if there were some dramatic increasing moments. I think that there should've been decreasing or damping trend in the forecasts.
+
+#b. Find an example where it does not work well. Can you figure out why?
+# It looked like ets function couldn't find well fitted ETS model when there were aperiodic fluctuations(or cycles) in the data. In such cases, ets function couldn't find trend or seasonality and just yields naive forecasts.
+
+```
