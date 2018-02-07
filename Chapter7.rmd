@@ -659,6 +659,177 @@ b. Compute the MSE of the resulting 4-steps-ahead errors. (Hint: make sure you r
 
 13. Compare ets, snaive and stlf on the following six time series. For stlf, you might need to use a Box-Cox transformation. Use a test set of three years to decide what gives the best forecasts. ausbeer, bricksq, dole, a10, h02, usmelec.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question13}
+
+# ausbeer data case
+str(ausbeer)
+head(ausbeer)
+# ausbeer is quarterly data
+
+autoplot(ausbeer)
+# it looked like it would be better to use BoxCox transformation option in stlf function.
+ausbeer_train <- subset(
+  ausbeer, end = length(ausbeer) - 12
+  )
+
+ausbeer_test <- subset(
+  ausbeer, start = length(ausbeer) - 11
+  )
+
+# try each model and forecast.
+ets_ausbeer_train <- forecast(
+  ets(ausbeer_train), h = 12
+)
+
+snaive_ausbeer_train <- snaive(ausbeer_train,  h = 12)
+
+stlf_ausbeer_train <- stlf(
+  ausbeer_train, 
+  h = 12,
+  s.window = 5,
+  robust = TRUE,
+  lambda = BoxCox.lambda(ausbeer_train))
+
+# choose best model using test set
+accuracy(ets_ausbeer_train, ausbeer_test)
+accuracy(snaive_ausbeer_train, ausbeer_test)
+accuracy(stlf_ausbeer_train, ausbeer_test)
+# Without RMSE, all the other errors show that the best model is STL + ETS(M, Ad, N).
+autoplot(stlf_ausbeer_train) +
+  autolayer(ausbeer_test)
+# The forecasts were similar to real data.
+
+# make a function to automatically fit models to given data and output accuracy using test set for each model.
+forecast.models <- function(y, h){
+  # inputs : y - data, h - forecast horizon of train set or the length of the test set(number of years)
+  # outputs : 
+  # train - train set of data y,
+  # test - test set of data y,
+  # m - frequency of data y,
+  # models - fitted and forecasted models,
+  #  $ets - fitted by ets function and then forecasted.
+  #  $snaive - data to snaive function
+  #  $stlf - data to stlf function
+  #  $stlf_with_BoxCox - data to stlf function. But in this case, BoxCox transformation option is used.
+  # accuracies - accuracy of the models using the test set,
+  #  $acc_ets - accuracy from ets model,
+  #  $acc_snaive - accuracy from snaive model,
+  #  $acc_stlf - accuracy from stlf model,
+  #  $acc_stlf_with_BoxCox - accuracy from stlf model with BoxCox transformation option.
+  
+  
+  # get frequency of data
+  m <- frequency(y)
+  
+  y_train <- subset(
+    y, end = length(y) - m*h
+    )
+  
+  y_test <- subset(
+    y, start = length(y) - m*h + 1
+    )
+  
+  # try each model and forecast.
+  ets_y_train <- forecast(
+    ets(y_train), h = m*h
+  )
+  
+  snaive_y_train <- snaive(y_train,  h = m*h)
+  
+  stlf_y_train <- stlf(
+    y_train, 
+    h = m*h,
+    s.window = m + 1,
+    robust = TRUE
+    )
+  
+  stlf_y_train_with_BoxCox <- stlf(
+    y_train, 
+    h = m*h,
+    s.window = m + 1,
+    robust = TRUE,
+    lambda = BoxCox.lambda(y_train))
+  
+  # combine forecasts to models variable
+  models <- list(ets_y_train, 
+                 snaive_y_train, 
+                 stlf_y_train,
+                 stlf_y_train_with_BoxCox)
+  
+  names(models) <- c("ets", "snaive", "stlf", "stlf_with_BoxCox")
+  
+  # get accuracy for each model using test set
+  acc_ets <- accuracy(ets_y_train, y_test)
+  acc_snaive <- accuracy(snaive_y_train, y_test)
+  acc_stlf <- accuracy(stlf_y_train, y_test)
+  acc_stlf_with_BoxCox <- accuracy(stlf_y_train_with_BoxCox, y_test)
+
+  # combine accuracies to accuracies variable.
+  accuracies <- list(acc_ets, 
+                     acc_snaive, 
+                     acc_stlf,
+                     acc_stlf_with_BoxCox)
+  
+  names(accuracies) <- c("acc_ets", "acc_snaive", "acc_stlf", "acc_stlf_with_BoxCox")
+
+  # return output values
+  output <- list(y_train, y_test, m, models, accuracies)
+  names(output) <- c("train", "test", "m", "models", "accuracies")
+  
+  return(output)
+}
+
+# bricksq data case
+fc_bricksq <- forecast.models(bricksq, 3)
+fc_bricksq$accuracies
+
+# All errors show that the best model is seasonal naive method.
+autoplot(fc_bricksq$models$snaive) +
+  autolayer(fc_bricksq$test)
+# In about an year the forecasts were similar to real data, but after that the real data increased exponentially while the trend of forecasts didn't change. But real data were still in the 80% prediction interval.
+
+
+# dole data case
+fc_dole <- forecast.models(dole, 3)
+fc_dole$accuracies
+
+# All errors show that the best model is seasonal naive method.
+autoplot(fc_dole$models$snaive) +
+  autolayer(fc_dole$test)
+# The forecasts were completely wrong. Real data showed dramatic increase without fluctuation in the forecast horizons. But even the best model couldn't predict such change.
+
+
+# a10 data case
+fc_a10 <- forecast.models(a10, 3)
+fc_a10$accuracies
+
+# All errors show that the best model is STL + ETS(A, A, N) with BoxCox transformation model.
+autoplot(fc_a10$models$stlf_with_BoxCox) +
+  autolayer(fc_a10$test)
+# The forecasts were similar to real data in about an year. But real data showed slightly more increase than the forecasts from that time. The best model could follow the general trend, but a little short for predicting more fastly increasing trend.
+
+
+# h02 data case
+fc_h02 <- forecast.models(h02, 3)
+fc_h02$accuracies
+
+# All errors show that the best model is STL + ETS(A, Ad, N) method.
+autoplot(fc_h02$models$stlf_with_BoxCox) +
+  autolayer(fc_h02$test)
+# The forecasts were similar to real data for the most part. 
+
+
+# usmelec data case
+fc_usmelec <- forecast.models(usmelec, 3)
+fc_usmelec$accuracies
+
+# Most of errors show that the best model is ETS(M, A, M) method.
+autoplot(fc_usmelec$models$ets) +
+  autolayer(fc_usmelec$test)
+# Real data were within the prediction interval for the most part. 
+
+```
+
 14. 
 a. Use ets() on the following series:
 
