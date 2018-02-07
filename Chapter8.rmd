@@ -1,5 +1,13 @@
 # Chapter 8
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Load_packages}
+
+library(fpp2)
+library(xlsx)
+library(rdatamarket)
+
+```
+
 2. A classic example of a non-stationary series is the daily closing IBM stock price series (data set ibmclose). Use R to plot the daily closing prices for IBM stock and the ACF and PACF. Explain how each plot shows that the series is non-stationary and should be differenced.
 
 
