@@ -10,6 +10,16 @@ library(rdatamarket)
 
 2. A classic example of a non-stationary series is the daily closing IBM stock price series (data set ibmclose). Use R to plot the daily closing prices for IBM stock and the ACF and PACF. Explain how each plot shows that the series is non-stationary and should be differenced.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question1}
+
+ggtsdisplay(ibmclose)
+# ACF plot shows that the autocorrelation values are bigger than critical value and decrease slowly. Also, r1 is large(near to 1) and positive. It means that the IBM stock data are non-stationary(predictable using lagged values).
+# PACF plot shows that there is a strong correlation between IBM stock data and their 1 lagged values. It means that IBM stock data can be predicted by 1 lagged values and they aren't stationary.
+
+# To get stationary data, IBM stock data need differencing. Differencing can help stabilize the mean of a time series by removing changes in the level of a time series. Therefore it will eliminate or reduce trend and seasonality and the effect can make non-staionary data stationary.
+
+```
+
 
 3. For the following series, find an appropriate Box-Cox transformation and order of differencing in order to obtain stationary data.
 
