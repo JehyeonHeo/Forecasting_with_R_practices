@@ -23,11 +23,133 @@ ggtsdisplay(ibmclose)
 
 3. For the following series, find an appropriate Box-Cox transformation and order of differencing in order to obtain stationary data.
 
-a. usnetelec
-b. usgdp
-c. mcopper
-d. enplanements
-e. visitors
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question3}
+
+# a. usnetelec
+autoplot(usnetelec)
+# It is almost linearly increasing data. It looked like that the data only need first differencing.
+Box.test(diff(usnetelec), type = "Ljung-Box")
+# first differenced usnetelec data can be thought of as a white noise series.
+tseries::kpss.test(diff(usnetelec))
+# kpss test result also shows that first differencing made the data stationary.
+
+# b. usgdp
+autoplot(usgdp)
+# It is almost linearly increasing data. It looked like that the data only need first differencing.
+Box.test(diff(usgdp), type = "Ljung-Box")
+# first differenced usnetelec data cannot be thought of as a white noise series.
+autoplot(diff(usgdp))
+# There is still a trend left in the differenced data. It looked like one more differencing would be enough, but use ndiffs function to check the number of differencing needed.
+ndiffs(usgdp)
+# One more differencing would be enough.
+autoplot(diff(diff(usgdp)))
+# Plot shows that the twice differenced data is like white noise series.
+Box.test(diff(diff(usgdp)), type = "Ljung-Box")
+# But it couldn't pass Ljung-Box test.
+ggAcf(diff(diff(usgdp)))
+# There are still some autocorrelations left.
+tseries::kpss.test(diff(diff(usnetelec)))
+# But kpss test result shows that differencing twice was enough to make the data stationary. Therefore in usgdp data case, even if twice differencing didn't make the data like white noise series, it made the data stationary.
+
+# c. mcopper
+autoplot(mcopper)
+# mcopper data have increasing trend. And they have bigger variation for bigger prices. Therefore I'll use Box-Cox transformation before differencing.
+autoplot(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))))
+Box.test(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))),
+         type = "Ljung-Box")
+# Plot result looked like BoxCox transformation and first differencing made the data like white noise series. But Ljung-Box test shows that it didn't.
+ggAcf(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))))
+# There are still some autocorrelations left.
+tseries::kpss.test(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))))
+# But kpss test result shows that differencing with Box-Cox transformation was enough to make the data stationary. In mcopper data case, even if differencing with Box-Cox transformation didn't make the data like white noise series, it made the data stationary.
+
+# d. enplanements
+autoplot(enplanements)
+# enplanements data have seasonality and increasing trend even if the number fell in 2001. I think that the data need seasonal differencing, too. The variations are bigger for bigger numbers. Therefore I'll use Box-Cox transformation before differencing.
+ndiffs(enplanements)
+nsdiffs(enplanements)
+# the data need 1 first differencing and 1 seasonal differencing.
+autoplot(
+  diff(
+    diff(
+      BoxCox(enplanements, BoxCox.lambda(enplanements)),
+      lag = 12
+    )
+  )
+)
+Box.test(
+  diff(
+    diff(
+      BoxCox(enplanements, BoxCox.lambda(enplanements)),
+      lag = 12
+    )
+  ),
+  type = "Ljung-Box"
+)
+# Plot result looked like BoxCox transformation and multiple differencings made the data like white noise series. But Ljung-Box test shows that it didn't.
+ggAcf(
+  diff(
+    diff(
+      BoxCox(enplanements, BoxCox.lambda(enplanements)),
+      lag = 12
+    )
+  )
+)
+# There are still some autocorrelations left.
+tseries::kpss.test(
+  diff(
+    diff(
+      BoxCox(enplanements, BoxCox.lambda(enplanements)),
+      lag = 12
+    )
+  )
+)
+# But kpss test result shows that differencings with Box-Cox transformation was enough to make the data stationary. In enplanements data case, even if differencings with Box-Cox transformation didn't make the data like white noise series, it made the data stationary.
+
+# e. visitors
+autoplot(visitors)
+# visitors data are similar to enplanements data. They have seasonality and increasing trend. It looked like they also need Box-Cox transformation, first and seasonal differencing.
+ndiffs(visitors)
+nsdiffs(visitors)
+# visitors data need 1 first and 1 seasonal differencing.
+autoplot(
+  diff(
+    diff(
+      BoxCox(visitors, BoxCox.lambda(visitors)),
+      lag = 12
+    )
+  )
+)
+Box.test(
+  diff(
+    diff(
+      BoxCox(visitors, BoxCox.lambda(visitors)),
+      lag = 12
+    )
+  ),
+  type = "Ljung-Box"
+)
+# Plot result looked like BoxCox transformation and multiple differencings made the data like white noise series. But Ljung-Box test shows that it didn't.
+ggAcf(
+  diff(
+    diff(
+      BoxCox(visitors, BoxCox.lambda(visitors)),
+      lag = 12
+    )
+  )
+)
+# There are still some autocorrelations left.
+tseries::kpss.test(
+  diff(
+    diff(
+      BoxCox(visitors, BoxCox.lambda(visitors)),
+      lag = 12
+    )
+  )
+)
+# But kpss test result shows that differencings with Box-Cox transformation was enough to make the data stationary. In visitors data case, even if differencings with Box-Cox transformation didn't make the data like white noise series, it made the data stationary.
+
+```
 
 
 4. For the enplanements data, write down the differences you chose above using backshift operator notation.
