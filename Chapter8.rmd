@@ -272,13 +272,83 @@ autoplot(y_arima.1.0.1)
 
 7. Consider the number of women murdered each year (per 100,000 standard population) in the United States. (Data set wmurders).
 
-a. By studying appropriate graphs of the series in R, find an appropriate ARIMA(p,d,q) model for these data. 
-b. Should you include a constant in the model? Explain.
-c. Write this model in terms of the backshift operator.
-d. Fit the model using R and examine the residuals. Is the model satisfactory?
-e. Forecast three times ahead. Check your forecasts by hand to make sure that you know how they have been calculated.
-f. Create a plot of the series with forecasts and prediction intervals for the next three periods shown.
-g. Does auto.arima give the same model you have chosen? If not, which model do you think is better?
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question7}
+
+# a. By studying appropriate graphs of the series in R, find an appropriate ARIMA(p,d,q) model for these data. 
+autoplot(wmurders)
+# It looked like the data don't need seasonal differencing or Box-Cox transformation.
+autoplot(diff(wmurders))
+# It looked like 1 more differencing would be needed to make the data stationary. Differenced data slowly go to minus infinity.
+ndiffs(wmurders)
+# ndiffs function shows that the data need 2 differencing.
+autoplot(diff(wmurders, differences = 2))
+tseries::kpss.test(diff(wmurders, differences = 2))
+# twice differencing made the data stationary.
+diff(wmurders, differences = 2) %>% ggtsdisplay()
+# PACF is decaying. And there are significant spikes at lag 1, and 2 in the ACF, but none beyond lag 2. If the data can be modelled by ARIMA(0, 2, q) or ARIMA(p, 2, 0), I'm going to model the data by ARIMA(0, 2, 2).
+
+# b. Should you include a constant in the model? Explain.
+# ARIMA model of the data includes twice differencing. If there is a constant in the model, twice integrated contant will yield quadratic trend, which is dangerous for forecasting. Therefore I won't include a constant in the model.
+
+# c. Write this model in terms of the backshift operator.
+# (1 - B)^2*yt = (1 + theta1*B + theta2*B^2)*et
+
+# d. Fit the model using R and examine the residuals. Is the model satisfactory?
+wmurders_arima.0.2.2 <- Arima(wmurders, 
+                              order = c(0, 2, 2))
+
+checkresiduals(wmurders_arima.0.2.2)
+# The residuals of the model can be thought of as white noise series. A little sorry that they aren't normally distributed. But it is satisfactory to get them.
+
+# e. Forecast three times ahead. Check your forecasts by hand to make sure that you know how they have been calculated.
+fc_wmurders_arima.0.2.2 <- forecast(
+  wmurders_arima.0.2.2, h = 3
+)
+
+# forecasts by Arima function
+fc_wmurders_arima.0.2.2$mean
+
+# get forecasts by manual calculation
+fc_wmurders_arima.0.2.2$model
+# formula
+# (1 - B)^2*yt = (1 - 1.0181*B + 0.1470*B^2)*et
+# yt = 2yt-1 - yt-2 + et - 1.0181*et-1 + 0.1470*et-2
+years <- length(wmurders)
+e <- fc_wmurders_arima.0.2.2$residuals
+
+fc1 <- 2*wmurders[years] - wmurders[years - 1] - 1.0181*e[years] + 0.1470*e[years - 1]
+
+fc2 <- 2*fc1 - wmurders[years] + 0.1470*e[years]
+
+fc3 <- 2*fc2 - fc1
+
+# forecasts by manual calculation
+c(fc1, fc2, fc3)
+# the forecasts are almost similar to the ones got by Arima function.
+
+# f. Create a plot of the series with forecasts and prediction intervals for the next three periods shown.
+autoplot(fc_wmurders_arima.0.2.2)
+
+# g. Does auto.arima give the same model you have chosen? If not, which model do you think is better?
+fc_wmurders_autoarima <- forecast(
+  auto.arima(wmurders), h = 3
+)
+
+# Without RMSE, all errors show that ARIMA(0, 2, 2) is better than ARIMA(1, 2, 1).
+accuracy(fc_wmurders_arima.0.2.2)
+accuracy(fc_wmurders_autoarima)
+
+# try using auto.arima function with stepwise and approximation options false.
+fc_wmurders_autoarima2 <- forecast(
+  auto.arima(wmurders, stepwise = FALSE, approximation = FALSE), 
+  h = 3
+)
+# It it ARIMA(0, 2, 3) model.
+
+accuracy(fc_wmurders_autoarima2)
+# In this case, some errors were better and some were worse. When the accuracy results are almost similar, it is better to choose simpler model. Therefore I'll choose ARIMA(0, 2, 2).
+
+```
 
 
 8. Consider the total international visitors to Australia (in millions) for the period 1980-2015. (Data set austa.)
