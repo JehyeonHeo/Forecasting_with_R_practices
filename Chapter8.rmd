@@ -162,6 +162,32 @@ tseries::kpss.test(
 
 5. For your retail data (from Exercise 3 in Section 2.10), find the appropriate order of differencing (after transformation if necessary) to obtain stationary data.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question5}
+
+retail <- read.xlsx("retail.xlsx",
+                    startRow = 2,
+                    sheetIndex = 1)
+
+retail.ts <- ts(retail[,"A3349873A"], 
+                frequency=12, 
+                start=c(1982,4))
+
+autoplot(retail.ts)
+# the data have increasing trend and strong seasonality. And there are bigger variations for bigger numbers. Therefore I think that I need to use first differencing and seasonal differencing. And it would be better to do Box-Cox transformation.
+ndiffs(retail.ts)
+nsdiffs(retail.ts)
+# I'm going to do 1 first differencing and 1 seasonal differencing.
+tseries::kpss.test(
+  diff(
+    diff(
+      BoxCox(retail.ts, BoxCox.lambda(retail.ts)),
+      lag = 12
+    )
+  )
+)
+# To make retail.ts data stationary, I did Box-Cox transformation, 1 first differencing and 1 seasonal differencing.
+
+```
 
 6. Use R to simulate and plot some data from simple ARIMA models.
 
