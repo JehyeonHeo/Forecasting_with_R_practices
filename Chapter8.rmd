@@ -353,11 +353,86 @@ accuracy(fc_wmurders_autoarima2)
 
 8. Consider the total international visitors to Australia (in millions) for the period 1980-2015. (Data set austa.)
 
-a. Use auto.arima to find an appropriate ARIMA model. What model was selected. Check that the residuals look like white noise. Plot forecasts for the next 10 periods.
-b. Plot forecasts from an ARIMA(0,1,1) model with no drift and compare these to part (a). Remove the MA term and plot again.
-c. Plot forecasts from an ARIMA(2,1,3) model with drift. Remove the constant and see what happens.
-d. Plot forecasts from an ARIMA(0,0,1) model with a constant. Remove the MA term and plot again.
-e. Plot forecasts from an ARIMA(0,2,1) model with no constant.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question8}
+
+# a. Use auto.arima to find an appropriate ARIMA model. What model was selected. Check that the residuals look like white noise. Plot forecasts for the next 10 periods.
+autoplot(austa)
+
+fc_austa_autoarima <- forecast(
+  auto.arima(austa), h = 10
+)
+
+fc_austa_autoarima$model
+# ARIMA(0, 1, 1) with drift model was chosen.
+
+checkresiduals(fc_austa_autoarima)
+# The residuals are like white noise.
+
+autoplot(fc_austa_autoarima)
+
+# b. Plot forecasts from an ARIMA(0,1,1) model with no drift and compare these to part (a). Remove the MA term and plot again.
+fc_austa_arima.0.1.1 <- forecast(
+  Arima(austa, order = c(0, 1, 1)), h = 10
+)
+
+autoplot(fc_austa_arima.0.1.1)
+
+fc_austa_arima.0.1.0 <- forecast(
+  Arima(austa, order = c(0, 1, 0)), h = 10
+)
+
+autoplot(fc_austa_arima.0.1.0)
+# the forecasts of both models are like the result of naive forecast. Increasing trend isn't reflected in the forecasts.
+
+fc_austa_arima.0.1.1$upper - fc_austa_arima.0.1.0$upper
+fc_austa_arima.0.1.0$lower - fc_austa_arima.0.1.1$lower
+# But prediction interval of ARIMA(0, 1, 1) model was generally larger than the one of ARIMA(0, 1, 0) model. I think that it is because of one more error term in ARIMA(0, 1, 1) model.
+
+# c. Plot forecasts from an ARIMA(2,1,3) model with drift. Remove the constant and see what happens.
+fc_austa_arima.2.1.3.drift <- forecast(
+  Arima(austa, order = c(2, 1, 3), include.drift = TRUE),
+  h = 10
+)
+
+autoplot(fc_austa_arima.2.1.3.drift)
+# The forecasts are increasing, but the speed of the increase is decreasing.
+
+drift_austa <- fc_austa_arima.2.1.3.drift$model$coef[6]
+fc_austa_arima.2.1.3.nodrift <- fc_austa_arima.2.1.3.drift$mean - drift_austa*seq_len(10)
+
+autoplot(fc_austa_arima.2.1.3.drift) +
+  autolayer(fc_austa_arima.2.1.3.nodrift)
+# Without drift constant, the forecasts are unlikely.
+
+# d. Plot forecasts from an ARIMA(0,0,1) model with a constant. Remove the MA term and plot again.
+fc_austa_arima.0.0.1.const <- forecast(
+  Arima(
+    austa, order = c(0, 0, 1), include.constant = TRUE
+    ),
+  h = 10
+)
+
+autoplot(fc_austa_arima.0.0.1.const)
+# the forecasts are fastly decreased to the mean of the data history.
+
+fc_austa_arima.0.0.0.const <- forecast(
+  Arima(austa, order = c(0, 0, 0), include.constant = TRUE),
+  h = 10
+)
+
+autoplot(fc_austa_arima.0.0.0.const)
+# All of the forecasts are the mean of the data history. It is like the result of mean method.
+
+# e. Plot forecasts from an ARIMA(0,2,1) model with no constant.
+fc_austa_arima.0.2.1 <- forecast(
+  Arima(austa, order = c(0, 2, 1)),
+  h = 10
+)
+
+autoplot(fc_austa_arima.0.2.1)
+# the forecasts show increasing trend. PI is being larger for the farther future forecast.
+
+```
 
 
 9. For the usgdp series:
