@@ -347,7 +347,15 @@ fc_wmurders_autoarima2 <- forecast(
 # It it ARIMA(0, 2, 3) model.
 
 accuracy(fc_wmurders_autoarima2)
-# In this case, some errors were better and some were worse. When the accuracy results are almost similar, it is better to choose simpler model. Therefore I'll choose ARIMA(0, 2, 2).
+# In this case, some errors were better while others were worse. I'll check residuals and ACF, PACF plots.
+ggtsdisplay(diff(wmurders, differences = 2))
+# It looked like that the data are similar to ARIMA(0, 2, 2) rather than ARIMA(0, 2, 3).
+
+checkresiduals(fc_wmurders_arima.0.2.2)
+checkresiduals(fc_wmurders_autoarima2)
+# almost similar residuals.
+
+# Therefore I'll choose ARIMA(0, 2, 2).
 
 ```
 
