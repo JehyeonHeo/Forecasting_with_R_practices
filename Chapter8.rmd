@@ -522,13 +522,64 @@ autoplot(fc_usgdp_ets)
 
 10. Consider austourists, the quarterly number of international tourists to Australia for the period 1999-2010. (Data set austourists.)
 
-a. Describe the time plot.
-b. What can you learn from the ACF graph?
-c. What can you learn from the PACF graph?
-d. Produce plots of the seasonally differenced data  
-(1 ??? B^4)Yt. What model do these graphs suggest?
-e. Does auto.arima give the same model that you chose? If not, which model do you think is better?
-f. Write the model in terms of the backshift operator, then without using the backshift operator.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question10}
+
+# a. Describe the time plot.
+autoplot(austourists)
+# the data have strong seasonality and increasing trend. Also the size of variations increased as the number increased.
+
+# b. What can you learn from the ACF graph?
+ggAcf(austourists)
+# autocorrelations are slowly decreasing. And the values at the lags of multiple of 4 were big compared to the others.
+
+# c. What can you learn from the PACF graph?
+ggPacf(austourists)
+# there are 5 significant spikes, and then no significant spikes thereafter (apart from one at lag 8, which are probably related with quarterly seasonality).
+
+# d. Produce plots of the seasonally differenced data  (1 ??? B^4)Yt. What model do these graphs suggest?
+ggtsdisplay(diff(austourists, lag = 4))
+# the seasonally differenced data are looked like to need at least one more differencing to make it stationary.
+# When considered the values at the lags of multiple of 4, there are just significant spikes at lag 4. I think that the order of seasonal ARIMA model can be (1, 1, 0)[4] or (0, 1, 1)[4]. I'll choose (1, 1, 0)[4] order. 
+# Disregarding the values at lag 4, autocorrelation values are looked like decreasing sinusoidally while partial autocorrelation values have spikes at lag 1 and 5. There aren't significant spikes at lag 2 and 3. I think that the spike at lag 5 doesn't mean that there are still important information unused at 5th lagged values. It should've been positively significant because of the big negatively significant spike at lag 4 after seasonal differencing. I can find this by drawing PACF plot after doing one more differencing.
+ggtsdisplay(diff(diff(austourists, lag = 4)))
+# Therefore I suggest ARIMA(1, 1, 0)(1, 1, 0)[4] model.
+
+# e. Does auto.arima give the same model that you chose? If not, which model do you think is better?
+fc_austourists_autoarima <- forecast(
+  auto.arima(austourists)
+)
+
+fc_austourists_autoarima$model
+# auto.arima gave ARIMA(1, 0, 0)(1, 1, 0)[4] model.
+
+fc_austourists_arima.1.1.0.1.1.0.4 <- forecast(
+  Arima(austourists, 
+        order = c(1, 1, 0), 
+        seasonal = c(1, 1, 0))
+)
+
+autoplot(fc_austourists_autoarima)
+autoplot(fc_austourists_arima.1.1.0.1.1.0.4)
+# ARIMA(1, 1, 0)(1, 1, 0)[4] shows more fastly increasing trend.
+
+accuracy(fc_austourists_autoarima)
+accuracy(fc_austourists_arima.1.1.0.1.1.0.4)
+# ARIMA(1, 0, 0)(1, 1, 0)[4] with drift model was fitted better. Therefore I think that this model is better than ARIMA(1, 1, 0)(1, 1, 0)[4] model.
+
+checkresiduals(fc_austourists_autoarima)
+# The residuals are like white noise series.
+
+# f. Write the model in terms of the backshift operator, then without using the backshift operator.
+fc_austourists_autoarima$model
+# (1 - phi1*B)(1 - phis1*B)(1 - B^4)(yt - c*t) = et
+# c = drift*(1 - phi1)(1 - phis1)*m^D = 1.7793
+
+# (1 - phi1*B - phis1*B + phi1*phis1*B^2)(1 - B^4)(yt - c*t) =
+# (1 - phi1*B - phis1*B + phi1*phis1*B^2 - B^4 + phi1*B^5 + phis1*B^5 - phi1*phis1*B^6)(yt - c*t) = et
+# yt = c + (phi1 + phis1)*yt-1 - phi1*phis1*yt-2 + yt-4 - (phi1 + phis1)*yt-5 + phi1*phis1*yt-6 + et
+# yt = 1.7793 - 0.06*yt-1 + 0.2496*yt-2 + yt-4 + 0.06*yt-5 - 0.2496*yt-6 + et
+
+```
 
 
 11. Consider the total net generation of electricity (in billion kilowatt hours) by the U.S. electric industry (monthly for the period January 1973 - June 2013). (Data set usmelec.) In general there are two peaks per year: in mid-summer and mid-winter.
