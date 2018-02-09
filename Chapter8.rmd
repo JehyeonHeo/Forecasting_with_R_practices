@@ -5,6 +5,7 @@
 library(fpp2)
 library(xlsx)
 library(rdatamarket)
+library(tseries)
 
 ```
 
@@ -30,7 +31,7 @@ autoplot(usnetelec)
 # It is almost linearly increasing data. It looked like that the data only need first differencing.
 Box.test(diff(usnetelec), type = "Ljung-Box")
 # first differenced usnetelec data can be thought of as a white noise series.
-tseries::kpss.test(diff(usnetelec))
+kpss.test(diff(usnetelec))
 # kpss test result also shows that first differencing made the data stationary.
 
 # b. usgdp
@@ -48,7 +49,7 @@ Box.test(diff(diff(usgdp)), type = "Ljung-Box")
 # But it couldn't pass Ljung-Box test.
 ggAcf(diff(diff(usgdp)))
 # There are still some autocorrelations left.
-tseries::kpss.test(diff(diff(usnetelec)))
+kpss.test(diff(diff(usnetelec)))
 # But kpss test result shows that differencing twice was enough to make the data stationary. Therefore in usgdp data case, even if twice differencing didn't make the data like white noise series, it made the data stationary.
 
 # c. mcopper
@@ -60,7 +61,7 @@ Box.test(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))),
 # Plot result looked like BoxCox transformation and first differencing made the data like white noise series. But Ljung-Box test shows that it didn't.
 ggAcf(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))))
 # There are still some autocorrelations left.
-tseries::kpss.test(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))))
+kpss.test(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))))
 # But kpss test result shows that differencing with Box-Cox transformation was enough to make the data stationary. In mcopper data case, even if differencing with Box-Cox transformation didn't make the data like white noise series, it made the data stationary.
 
 # d. enplanements
@@ -96,7 +97,7 @@ ggAcf(
   )
 )
 # There are still some autocorrelations left.
-tseries::kpss.test(
+kpss.test(
   diff(
     diff(
       BoxCox(enplanements, BoxCox.lambda(enplanements)),
@@ -139,7 +140,7 @@ ggAcf(
   )
 )
 # There are still some autocorrelations left.
-tseries::kpss.test(
+kpss.test(
   diff(
     diff(
       BoxCox(visitors, BoxCox.lambda(visitors)),
@@ -177,7 +178,7 @@ autoplot(retail.ts)
 ndiffs(retail.ts)
 nsdiffs(retail.ts)
 # I'm going to do 1 first differencing and 1 seasonal differencing.
-tseries::kpss.test(
+kpss.test(
   diff(
     diff(
       BoxCox(retail.ts, BoxCox.lambda(retail.ts)),
@@ -282,7 +283,7 @@ autoplot(diff(wmurders))
 ndiffs(wmurders)
 # ndiffs function shows that the data need 2 differencing.
 autoplot(diff(wmurders, differences = 2))
-tseries::kpss.test(diff(wmurders, differences = 2))
+kpss.test(diff(wmurders, differences = 2))
 # twice differencing made the data stationary.
 diff(wmurders, differences = 2) %>% ggtsdisplay()
 # PACF is decaying. And there are significant spikes at lag 1, and 2 in the ACF, but none beyond lag 2. If the data can be modelled by ARIMA(0, 2, q) or ARIMA(p, 2, 0), I'm going to model the data by ARIMA(0, 2, 2).
