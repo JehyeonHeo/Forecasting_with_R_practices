@@ -1090,21 +1090,65 @@ c(bicoal.1969.new, bicoal.1970.new, bicoal.1971.new)
 
 
 18. 
-a. Install the rdatamarket package in R using
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question18}
 
-  install.packages("rdatamarket")
+# a. Install the rdatamarket package in R using
+#  install.packages("rdatamarket")
 
-b. Select a time series from http://datamarket.com/data/list/?q=pricing:free. Then copy its short URL and import the data using
+# b. Select a time series from http://datamarket.com/data/list/?q=pricing:free. Then copy its short URL and import the data using
+#  x <- ts(rdatamarket::dmseries("shorturl")[,1], start=??, frequency=??)
+# (Replace ?? with the appropriate values.)
+oil.NA <- ts(dmseries("http://data.is/1qk5Uvf")[, "Total.North.America"], start=1965, frequency=1)
 
-  x <- ts(rdatamarket::dmseries("shorturl")[,1], start=??, frequency=??)
+str(oil.NA)
+head(oil.NA)
 
-(Replace ?? with the appropriate values.)
-c. Plot graphs of the data, and try to identify an appropriate ARIMA model.
-d. Do residual diagnostic checking of your ARIMA model. Are the residuals white noise?
-e. Use your chosen ARIMA model to forecast the next four years.
-f. Now try to identify an appropriate ETS model.
-g. Do residual diagnostic checking of your ETS model. Are the residuals white noise?
-h. Use your chosen ETS model to forecast the next four years.
-i. Which of the two models do you prefer?
+# c. Plot graphs of the data, and try to identify an appropriate ARIMA model.
+autoplot(oil.NA)
+ndiffs(oil.NA)
+ggtsdisplay(diff(oil.NA))
+# I think that ARIMA(1, 1, 0) model will fit well to the data.
+
+# d. Do residual diagnostic checking of your ARIMA model. Are the residuals white noise?
+oil.NA_arima.1.1.0 <- Arima(
+  oil.NA, order = c(1, 1, 0)
+)
+
+checkresiduals(oil.NA_arima.1.1.0)
+# The residuals are like white noise.
+
+# e. Use your chosen ARIMA model to forecast the next four years.
+fc_oil.NA_arima.1.1.0 <- forecast(
+  oil.NA_arima.1.1.0, h = 4
+)
+
+autoplot(fc_oil.NA_arima.1.1.0)
+# The forecast values of oil production are increasing. But the increase speed is damping.
+
+# f. Now try to identify an appropriate ETS model.
+oil.NA_ets <- ets(oil.NA)
+
+oil.NA_ets
+# chosen model is ETS(A, A, N).
+
+# g. Do residual diagnostic checking of your ETS model. Are the residuals white noise?
+checkresiduals(oil.NA_ets)
+# The residuals are like white noise.
+
+# h. Use your chosen ETS model to forecast the next four years.
+fc_oil.NA_ets <- forecast(
+  oil.NA_ets, h = 4
+)
+
+autoplot(fc_oil.NA_ets)
+# The forecast values of oil production are increasing. And the increase speed doesn't almost change.
+
+# i. Which of the two models do you prefer?
+# I prefer ARIMA model. Because I think that it is unlikely that the oil production amounts increase a lot for more than 10 years in a row. It is likely that the increase of the production amounts will be decreased.
+# But the real production amount was about 931 Million Ton in 2015. The forecasts from ETS model were more similar to the real production amounts for about 3 years of forecast horizon.
+# http://tools.bp.com/energy-charting-tool.aspx?_ga=2.211706901.1002175336.1518264329-1800202796.1518264329#/st/oil/dt/production/unit/KBD/region/NOA/SCA/EU/MIE/AFR/AP/view/area/
+
+```
+
 
 ### Question 1 isn't related with coding that I didn't include in this file.
