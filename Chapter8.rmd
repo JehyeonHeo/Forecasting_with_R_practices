@@ -883,6 +883,28 @@ autoplot(fc_qauselec_ets)
 
 14. For the same time series you used in the previous exercise, try using a non-seasonal model applied to the seasonally adjusted data obtained from STL. The stlf() function will make the calculations easy (with method="arima"). Compare the forecasts with those obtained in the previous exercise. Which do you think is the best approach?
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question14}
+
+fc_qauselec_stlf <- stlf(
+  qauselec, lambda = BoxCox.lambda(qauselec),
+  s.window = 5, robust = TRUE, method = "arima",
+  h = 8
+)
+
+autoplot(fc_qauselec_stlf) +
+  scale_x_continuous(limits = c(2005, 2012)) +
+  scale_y_continuous(limits = c(50, 70))
+
+autoplot(fc_qauselec_ets) +
+  scale_x_continuous(limits = c(2005, 2012)) +
+  scale_y_continuous(limits = c(50, 70))
+
+autoplot(fc_qauselec_autoarima) +
+  scale_x_continuous(limits = c(2005, 2012)) +
+  scale_y_continuous(limits = c(50, 70))
+# I don't know which forecasts are best. Forecasts from STL + ARIMA(0, 1, 1) with drift model yielded highest forecasts. It looked like it followed latest trend a lot. ETS(M, A, M) model yielded broadest PI. ARIMA(1, 1, 1)(1, 1, 2)[4] model yielded least varianced forecasts. In qauselec data case, the choice of model didn't affect forecasts much because they already have strong seasonality and almost not changed increasing trend.
+
+```
 
 15. For your retail time series (Exercise 5 above):
 
