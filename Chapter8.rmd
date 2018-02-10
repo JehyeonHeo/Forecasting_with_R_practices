@@ -700,12 +700,91 @@ autoplot(fc_usmelec_arima.0.1.2.0.1.1.12, series = "Forecasts") +
 
 12. For the mcopper data:
 
-a. if necessary, find a suitable Box-Cox transformation for the data;
-b. fit a suitable ARIMA model to the transformed data using auto.arima();
-c. try some other plausible models by experimenting with the orders chosen;
-d. choose what you think is the best model and check the residual diagnostics;
-e. produce forecasts of your fitted model. Do the forecasts look reasonable?
-f. compare the results with what you would obtain using ets() (with no transformation).
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question12}
+
+# a. if necessary, find a suitable Box-Cox transformation for the data;
+autoplot(mcopper)
+# they are monthly data but there isn't seasonality in them.
+autoplot(BoxCox(mcopper, BoxCox.lambda(mcopper)))
+# It looked like Box-Cox transformation makes the variations in the data evenly over time. Therefore I'm going to use the transformation.
+lambda_mcopper <- BoxCox.lambda(mcopper)
+
+# b. fit a suitable ARIMA model to the transformed data using auto.arima();
+mcopper_autoarima <- auto.arima(
+  mcopper,
+  lambda = lambda_mcopper
+)
+
+mcopper_autoarima
+# auto.arima yielded ARIMA(0, 1, 1) with Box-Cox transformation model. AICc was -86.08.
+
+# c. try some other plausible models by experimenting with the orders chosen;
+ndiffs(mcopper)
+nsdiffs(mcopper)
+# the data need 1 first differencing.
+ggtsdisplay(diff(mcopper))
+# It looked like autocorrelation values are sinusoidally decreasing. I'll choose ARIMA model's order as (1, 1, 0) and (5, 1, 0).
+
+mcopper_arima.1.1.0 <- Arima(
+  mcopper, order = c(1, 1, 0), lambda = lambda_mcopper
+)
+
+mcopper_arima.1.1.0
+# AICc was -75.64.
+
+mcopper_arima.5.1.0 <- Arima(
+  mcopper, order = c(5, 1, 0), lambda = lambda_mcopper
+)
+
+mcopper_arima.5.1.0
+# AICc was -78.48.
+
+# I'll try auto.arima function without approximation and stepwise options.
+mcopper_autoarima2 <- auto.arima(
+  mcopper, lambda = lambda_mcopper,
+  approximation = FALSE, stepwise = FALSE
+)
+
+mcopper_autoarima2
+# the result model is the same as when I didn't use the options.
+
+# d. choose what you think is the best model and check the residual diagnostics;
+# When I compared AICc values, I got the smallest when I used auto.arima function. (I could've used AICc in comparing because the differencing was the same for all models I chose.) Best model is ARIMA(0, 1, 1) with Box-Cox transformation.
+checkresiduals(mcopper_autoarima)
+# The residuals are like white noise. I'll select the model.
+
+# e. produce forecasts of your fitted model. Do the forecasts look reasonable?
+fc_mcopper_autoarima <- forecast(
+  mcopper_autoarima
+)
+
+autoplot(fc_mcopper_autoarima)
+# The forecasts aren't reasonable.
+
+# I'll try other models I made.
+fc_mcopper_arima.1.1.0 <- forecast(
+  mcopper_arima.1.1.0
+)
+
+autoplot(fc_mcopper_arima.1.1.0)
+# got almost same result
+
+fc_mcopper_arima.5.1.0 <- forecast(
+  mcopper_arima.5.1.0
+)
+
+autoplot(fc_mcopper_arima.5.1.0)
+# got almost same result, too
+
+# f. compare the results with what you would obtain using ets() (with no transformation).
+fc_mcopper_ets <- forecast(
+  ets(mcopper)
+)
+
+autoplot(fc_mcopper_ets)
+# These forecasts are more reasonable than what I got above.
+
+```
 
 
 13. Choose one of the following seasonal time series: hsales, auscafe, qauselec, qcement, qgas.
