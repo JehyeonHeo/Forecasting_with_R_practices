@@ -970,18 +970,62 @@ accuracy(fc_retail_snaive, retail.new.test)
 
 
 16. 
-a. Produce a time plot of the sheep population of England and Wales from 1867-1939 (data set sheep).
-b. Assume you decide to fit the following model:
-yt = yt-1 + phi1(yt-1 - yt-2) + phi2(yt-2 - yt-3) + phi3(yt-3 - yt-4) + et
- 
-where et is a white noise series. What sort of ARIMA model is this (i.e., what are p, d, and q)?
-c. By examining the ACF and PACF of the differenced data, explain why this model is appropriate.
-d. The last five values of the series are given below:
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question16}
 
-Year	1935	1936	1937	1938	1939
-Millions of sheep	1648	1665	1627	1791	1797
-The estimated parameters are phi1 = 0.42, phi2 = -0.20, and phi3 = -0.30. Without using the forecast function, calculate forecasts for the next three years (1940-1942).
-e. Now fit the model in R and obtain the forecasts using forecast. How are they different from yours? Why?
+# a. Produce a time plot of the sheep population of England and Wales from 1867-1939 (data set sheep).
+autoplot(sheep)
+# There is decreasing trend, but no definite seasonality.
+
+# b. Assume you decide to fit the following model:
+# yt = yt-1 + phi1(yt-1 - yt-2) + phi2(yt-2 - yt-3) + phi3(yt-3 - yt-4) + et
+# where et is a white noise series. What sort of ARIMA model is this (i.e., what are p, d, and q)?
+
+# (yt - yt-1) - phi1(yt-1 - yt-2) - phi2(yt-2 - yt-3) - phi3(yt-3 - yt-4) = et
+# (1 - B)yt - phi1*B(1- B)yt - phi2*B^2(1- B)yt - phi3*B^3(1- B)yt = et
+# (1 - phi1*B - phi2*B^2 - phi3*B^3)(1 - B)yt = et
+# It is ARIMA(3, 1, 0) model.
+
+# c. By examining the ACF and PACF of the differenced data, explain why this model is appropriate.
+ggtsdisplay(diff(sheep))
+# ACF plot shows sinusoidally decreasing while PACF plot shows significant spikes at lag 1 to 3, but no beyond lag 3. Therefore ARIMA(3, 1, 0) is appropriate.
+
+# d. The last five values of the series are given below:
+# Year	            1935	1936	1937	1938	1939
+# Millions of sheep	1648	1665	1627	1791	1797
+# The estimated parameters are phi1 = 0.42, phi2 = -0.20, and phi3 = -0.30. Without using the forecast function, calculate forecasts for the next three years (1940-1942).
+
+sheep.1940 = 1797 + 0.42*(1797 - 1791) -0.20*(1791 - 1627) - 0.30*(1627 - 1665)
+
+sheep.1941 = sheep.1940 + 0.42*(sheep.1940 - 1797) -0.20*(1797 - 1791) - 0.30*(1791 - 1627)
+
+sheep.1942 = sheep.1941 + 0.42*(sheep.1941 - sheep.1940) -0.20*(sheep.1940 - 1797) - 0.30*(1797 - 1791)
+
+c(sheep.1940, sheep.1941, sheep.1942)
+
+# e. Now fit the model in R and obtain the forecasts using forecast. How are they different from yours? Why?
+fc_sheep_arima.3.1.0 <- forecast(
+  Arima(sheep, order = c(3, 1, 0)),
+  h = 3
+)
+
+fc_sheep_arima.3.1.0$mean
+# calculated forecasts were a little bigger than the forecasts from Arima function. And the differences between the forecasts at the same time became bigger as time goes on. I think that it happened because of the differences of the coefficients. 
+# Small differences in the coefficients made the difference between the first forecasts. And then the lower forecast value was used to forecast the next time point's forecast. When the next time point's forecast of Arima function was calculated, the difference became bigger. It looked like such situation repeated.
+ar1 <- fc_sheep_arima.3.1.0$model$coef[1]
+ar2 <- fc_sheep_arima.3.1.0$model$coef[2]
+ar3 <- fc_sheep_arima.3.1.0$model$coef[3]
+
+sheep.1940.new = 1797 + ar1*(1797 - 1791) + ar2*(1791 - 1627) + ar3*(1627 - 1665)
+
+sheep.1941.new = sheep.1940.new + ar1*(sheep.1940.new - 1797) + ar2*(1797 - 1791) + ar3*(1791 - 1627)
+
+sheep.1942.new = sheep.1941.new + ar1*(sheep.1941.new - sheep.1940.new) + ar2*(sheep.1940.new - 1797) + ar3*(1797 - 1791)
+
+c(sheep.1940.new, sheep.1941.new, sheep.1942.new)
+# above calculation confirms what I said about the differences.
+
+```
+
 
 17.
 a. Plot the annual bituminous coal production in the United States from 1920 to 1968 (data set ).
