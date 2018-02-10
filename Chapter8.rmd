@@ -789,12 +789,96 @@ autoplot(fc_mcopper_ets)
 
 13. Choose one of the following seasonal time series: hsales, auscafe, qauselec, qcement, qgas.
 
-a. Do the data need transforming? If so, find a suitable transformation.
-b. Are the data stationary? If not, find an appropriate differencing which yields stationary data.
-c. Identify a couple of ARIMA models that might be useful in describing the time series. Which of your models is the best according to their AIC values?
-d. Estimate the parameters of your best model and do diagnostic testing on the residuals. Do the residuals resemble white noise? If not, try to find another ARIMA model which fits better.
-e. Forecast the next 24 months of data using your preferred model.
-f. Compare the forecasts obtained using ets().
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question13}
+
+# a. Do the data need transforming? If so, find a suitable transformation.
+# I'll analyze and forecast qauselec data.
+autoplot(qauselec)
+# The data need Box-Cox transformation to make the variations evenly over time.
+lambda_qauselec <- BoxCox.lambda(qauselec)
+
+# b. Are the data stationary? If not, find an appropriate differencing which yields stationary data.
+# The data have strong seasonality and increasing trend. It means that the data aren't stationary.
+nsdiffs(qauselec)
+ndiffs(qauselec)
+# The data need 1 seasonal differencing.
+kpss.test(diff(qauselec, lag = 4))
+# The data don't need first differencing. But I'll try with first differencing, too.
+
+# c. Identify a couple of ARIMA models that might be useful in describing the time series. Which of your models is the best according to their AIC values?
+ggtsdisplay(diff(
+  BoxCox(qauselec, lambda_qauselec), lag = 4
+  ))
+ggtsdisplay(diff(diff(
+  BoxCox(qauselec, lambda_qauselec), lag = 4
+  )))
+
+# suggest models:
+# ARIMA(0, 0, 1)(0, 1, 1)[4]
+qauselec_arima0.0.1.0.1.1.4 <- Arima(
+  qauselec, lambda = lambda_qauselec,
+  order = c(0, 0, 1), seasonal = c(0, 1, 1)
+)
+
+qauselec_arima0.0.1.0.1.1.4
+# AIC = -97.01
+
+# ARIMA(0, 1, 1)(0, 1, 1)[4]
+qauselec_arima0.1.1.0.1.1.4 <- Arima(
+  qauselec, lambda = lambda_qauselec,
+  order = c(0, 1, 1), seasonal = c(0, 1, 1)
+)
+
+qauselec_arima0.1.1.0.1.1.4
+#AIC = -292.59
+
+# ARIMA(0, 1, 1)(0, 1, 2)[4]
+qauselec_arima0.1.1.0.1.2.4 <- Arima(
+  qauselec, lambda = lambda_qauselec,
+  order = c(0, 1, 1), seasonal = c(0, 1, 2)
+)
+
+qauselec_arima0.1.1.0.1.2.4
+#AIC = -292.73
+
+# try using auto.arima function
+qauselec_autoarima <- auto.arima(
+  qauselec, lambda = lambda_qauselec
+)
+
+qauselec_autoarima
+# AIC = -300.84
+
+# According to AIC values, ARIMA(1, 1, 1)(1, 1, 2)[4] with Box-Cox transformation is the best model. But above 2 models and the model made by auto.arima function used different number of differencings.
+
+# d. Estimate the parameters of your best model and do diagnostic testing on the residuals. Do the residuals resemble white noise? If not, try to find another ARIMA model which fits better.
+# phi1 = 0.2523, theta1 = -0.6905, phis1 = 0.8878, thetas1 = -1.6954, thetas2 = -0.7641 
+checkresiduals(qauselec_autoarima)
+# The residuals aren't like white noise.
+
+# try using other models.
+checkresiduals(qauselec_arima0.0.1.0.1.1.4)
+checkresiduals(qauselec_arima0.1.1.0.1.1.4)
+checkresiduals(qauselec_arima0.1.1.0.1.2.4)
+# The residuals don't resemble white noise regardless of the model. Therefore I'm going to use the best model.
+
+# e. Forecast the next 24 months of data using your preferred model.
+fc_qauselec_autoarima <- forecast(
+  qauselec_autoarima, h = 8
+)
+
+autoplot(fc_qauselec_autoarima)
+# The forecasts are reasonable.
+
+# f. Compare the forecasts obtained using ets().
+fc_qauselec_ets <- forecast(
+  ets(qauselec), h = 8
+)
+
+autoplot(fc_qauselec_ets)
+# These forecasts also are reasonable.
+
+```
 
 
 14. For the same time series you used in the previous exercise, try using a non-seasonal model applied to the seasonally adjusted data obtained from STL. The stlf() function will make the calculations easy (with method="arima"). Compare the forecasts with those obtained in the previous exercise. Which do you think is the best approach?
