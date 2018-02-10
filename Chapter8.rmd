@@ -908,9 +908,65 @@ autoplot(fc_qauselec_autoarima) +
 
 15. For your retail time series (Exercise 5 above):
 
-a. develop an appropriate seasonal ARIMA model;
-b. compare the forecasts with those you obtained in earlier chapters;
-c. Obtain up-to-date retail data from the ABS website (Cat 8501.0, Table 11), and compare your forecasts with the actual numbers. How good were the forecasts from the various models?
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question15}
+
+# a. develop an appropriate seasonal ARIMA model;
+fc_retail_autoarima <- forecast(
+  auto.arima(retail.ts),
+  h = 36
+)
+
+autoplot(fc_retail_autoarima)
+# ARIMA(1, 0, 2)(0, 1, 1)[12] with drift model was chosen.
+
+# b. compare the forecasts with those you obtained in earlier chapters;
+# In chapter 3, I used seasonal naive method to forecast.
+fc_retail_snaive <- snaive(retail.ts, h = 36)
+
+autoplot(fc_retail_snaive)
+
+# In chapter 7, I thought that Holt-Winters' multiplicative method was best in ets models.
+fc_retail_ets <- forecast(
+  ets(retail.ts, lambda = BoxCox.lambda(retail.ts)), 
+  h = 36
+)
+
+autoplot(fc_retail_ets)
+
+# c. Obtain up-to-date retail data from the ABS website (Cat 8501.0, Table 11), and compare your forecasts with the actual numbers. How good were the forecasts from the various models?
+# Get the latest figures.
+retail.new <- read.xlsx("8501011.xlsx", 
+                        sheetName = "Data1", 
+                        startRow = 10)
+
+retail.new.ts <- ts(retail.new[, "A3349873A"],
+                    start = c(1982, 4),
+                    frequency = 12)
+
+retail.new.test <- subset(
+  retail.new.ts,
+  start = length(retail.ts) + 1
+  )
+
+# draw plots for the data in forecast horizon.
+autoplot(fc_retail_autoarima$mean, series = "ARIMA") +
+  geom_line(size = 1, color = "red") +
+  autolayer(fc_retail_ets$mean, series = "Holt-Winters'", size = 1) +
+  autolayer(fc_retail_snaive$mean, series = "Seasonal Naive", size = 1) +
+  autolayer(retail.new.test, series = "Real data", size = 1) +
+  ggtitle("Turnover of other retailings not elsewhere classified",
+          subtitle = "- From New South Wales in Australia") +
+  ylab("Trade amount($ Millions)") +
+  scale_color_discrete(breaks = c("Real data", "ARIMA", "Holt-Winters'", "Seasonal Naive"))
+# plots shows that the forecasts from Holt-Winters' model were the most accurate.
+
+# get accuracy for each models' forecasts.
+accuracy(fc_retail_autoarima, retail.new.test)
+accuracy(fc_retail_ets, retail.new.test)
+accuracy(fc_retail_snaive, retail.new.test)
+# With ACF1, all errors show that the Holt-Winters' model was best. The next one was ARIMA model. Seasonal naive model showed the poorest forecasting accuracy.
+
+```
 
 
 16. 
