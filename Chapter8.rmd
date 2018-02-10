@@ -1028,16 +1028,65 @@ c(sheep.1940.new, sheep.1941.new, sheep.1942.new)
 
 
 17.
-a. Plot the annual bituminous coal production in the United States from 1920 to 1968 (data set ).
-b. You decide to fit the following model to the series:
-yt = c + phi1\*yt-1 + phi2\*yt-2 + phi3\*yt-3 + phi4\*yt-4 + et
-where yt is the coal production in year t and et is a white noise series. What sort of ARIMA model is this (i.e., what are p, d, and q)?
-c. Explain why this model was chosen using the ACF and PACF.
-d. The last five values of the series are given below.
-Year	1964	1965	1966	1967	1968
-Millions of tons	467	512	534	552	545
-The estimated parameters are c = 162.00, phi1 = 0.83, phi2 = -0.34, phi3 = 0.55. Without using the forecast function, calculate forecasts for the next three years (1969-1971).
-e. Now fit the model in R and obtain the forecasts from the same model. How are they different from yours? Why?
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question17}
+
+# a. Plot the annual bituminous coal production in the United States from 1920 to 1968 (data set bicoal).
+autoplot(bicoal)
+# It looked like there isn't any particular trend or seasonality.
+
+# b. You decide to fit the following model to the series:
+# yt = c + phi1*yt-1 + phi2*yt-2 + phi3*yt-3 + phi4*yt-4 + et
+# where yt is the coal production in year t and et is a white noise series. What sort of ARIMA model is this (i.e., what are p, d, and q)?
+
+# (1 - phi1*B - phi2*B^2 - phi3*B^3 - phi4*B^4)yt = c + et
+# if mu is the mean of yt,
+# c = mu(1 - phi1*B - phi2*B^2 - phi3*B^3 - phi4*B^4)
+# This model is ARIMA(4, 0, 0) or AR(4).
+
+# c. Explain why this model was chosen using the ACF and PACF.
+ggAcf(bicoal, lag.max = 36)
+ggPacf(bicoal, lag.max = 36)
+# ACF plot shows sinusoidally decreasing autocorrelation values. PACF plot shows significant spikes at lag 1 and 4, but none beyond lag 4. Therefore AR(4) model is the appropriate choice.
+
+# d. The last five values of the series are given below.
+# Year	           1964	1965	1966	1967	1968
+# Millions of tons	467	 512	 534	 552 	 545
+# The estimated parameters are c = 162.00, phi1 = 0.83, phi2 = -0.34, phi3 = 0.55 and phi4 = -0.38. Without using the forecast function, calculate forecasts for the next three years (1969-1971).
+c = 162.00
+phi1 = 0.83 
+phi2 = -0.34
+phi3 = 0.55
+phi4 = -0.38
+
+bicoal.1969 <- c + phi1*545 + phi2*552 + phi3*534 + phi4*512
+
+bicoal.1970 <- c + phi1*bicoal.1969 + phi2*545 + phi3*552 + phi4*534
+
+bicoal.1971 <- c + phi1*bicoal.1970 + phi2*bicoal.1969 + phi3*545 + phi4*552
+
+c(bicoal.1969, bicoal.1970, bicoal.1971)
+
+# e. Now fit the model in R and obtain the forecasts from the same model. How are they different from yours? Why?
+fc_bicoal_ar4 <- forecast(ar(bicoal, 4), h = 3)
+
+fc_bicoal_ar4$mean
+# The forecasts from ar function were a little bigger than the calculated forecasts. It also happened because of the small differences of coefficients.
+phi1 <- fc_bicoal_ar4$model$ar[1]
+phi2 <- fc_bicoal_ar4$model$ar[2]
+phi3 <- fc_bicoal_ar4$model$ar[3]
+phi4 <- fc_bicoal_ar4$model$ar[4]
+c <- fc_bicoal_ar4$model$x.mean*(1 - phi1 - phi2 - phi3 - phi4)
+
+bicoal.1969.new <- c + phi1*545 + phi2*552 + phi3*534 + phi4*512
+
+bicoal.1970.new <- c + phi1*bicoal.1969.new + phi2*545 + phi3*552 + phi4*534
+
+bicoal.1971.new <- c + phi1*bicoal.1970.new + phi2*bicoal.1969.new + phi3*545 + phi4*552
+
+c(bicoal.1969.new, bicoal.1970.new, bicoal.1971.new)
+# These calculation and results confirm the causation of the differences in forecasts.
+
+```
 
 
 18. 
