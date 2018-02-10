@@ -344,7 +344,7 @@ fc_wmurders_autoarima2 <- forecast(
   auto.arima(wmurders, stepwise = FALSE, approximation = FALSE), 
   h = 3
 )
-# It it ARIMA(0, 2, 3) model.
+# It is ARIMA(0, 2, 3) model.
 
 accuracy(fc_wmurders_autoarima2)
 # In this case, some errors were better while others were worse. I'll check residuals and ACF, PACF plots.
