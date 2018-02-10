@@ -584,13 +584,118 @@ fc_austourists_autoarima$model
 
 11. Consider the total net generation of electricity (in billion kilowatt hours) by the U.S. electric industry (monthly for the period January 1973 - June 2013). (Data set usmelec.) In general there are two peaks per year: in mid-summer and mid-winter.
 
-a. Examine the 12-month moving average of this series to see what kind of trend is involved.
-b. Do the data need transforming? If so, find a suitable transformation.
-c. Are the data stationary? If not, find an appropriate differencing which yields stationary data.
-d. Identify a couple of ARIMA models that might be useful in describing the time series. Which of your models is the best according to their AIC values?
-f. Estimate the parameters of your best model and do diagnostic testing on the residuals. Do the residuals resemble white noise? If not, try to find another ARIMA model which fits better.
-g. Forecast the next 15 years of electricity generation by the U.S. electric industry. Get the latest figures from https://goo.gl/WZIItv to check the accuracy of your forecasts.
-h. How many years of forecasts do you think are sufficiently accurate to be usable?
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question11}
+
+# a. Examine the 12-month moving average of this series to see what kind of trend is involved.
+usmelec_ma2x12 <- ma(usmelec, order = 12, centre = TRUE)
+
+autoplot(usmelec, series = "Data") +
+  autolayer(usmelec_ma2x12, series = "2X12-MA") +
+  ylab(expression(paste("Electricity(x", 10^{9}, "KWh)"))) + 
+  ggtitle("Monthly total net generation of electricity") +
+  scale_color_discrete(breaks = c("Data", "2X12-MA"))
+# Total net generation amount increased first but stoped increasing from about 2008.
+
+# b. Do the data need transforming? If so, find a suitable transformation.
+# The data show bigger variation for bigger amount. Therefore I think that Box-Cox transformation would be suitable for the data.
+
+# c. Are the data stationary? If not, find an appropriate differencing which yields stationary data.
+# The data are non-stationary.
+ndiffs(usmelec)
+nsdiffs(usmelec)
+# I need to do 1 seasonal differencing to make the data stationary. If seasonal differencing isn't enough to make them stationary, I need to do first differencing, too.
+
+# d. Identify a couple of ARIMA models that might be useful in describing the time series. Which of your models is the best according to their AIC values?
+ggtsdisplay(diff(
+  BoxCox(usmelec, BoxCox.lambda(usmelec)),
+  lag = 12
+  ))
+# Definitely, I need to use first differencing, too.
+ggtsdisplay(
+  diff(
+    diff(
+      BoxCox(usmelec, BoxCox.lambda(usmelec)),
+      lag = 12
+    )
+  )
+)
+# I think that ARIMA(0, 1, 2)(0, 1, 1)[12] after Box-Cox transformation model might describe the data well. I'll try ARIMA(0, 1, 3)(0, 1, 1)[12] after Box-Cox transformation model, too.
+usmelec_arima.0.1.2.0.1.1.12 <- Arima(
+  usmelec,
+  lambda = BoxCox.lambda(usmelec),
+  order = c(0, 1, 2),
+  seasonal = c(0, 1, 1)
+)
+
+usmelec_arima.0.1.3.0.1.1.12 <- Arima(
+  usmelec,
+  lambda = BoxCox.lambda(usmelec),
+  order = c(0, 1, 3),
+  seasonal = c(0, 1, 1)
+)
+
+usmelec_arima.0.1.2.0.1.1.12$aic
+usmelec_arima.0.1.3.0.1.1.12$aic
+# ARIMA(0, 1, 2)(0, 1, 1)[12] with Box-Cox transformation model was the best.
+
+# e. Estimate the parameters of your best model and do diagnostic testing on the residuals. Do the residuals resemble white noise? If not, try to find another ARIMA model which fits better.
+usmelec_arima.0.1.2.0.1.1.12
+#theta1 = -0.4317, theta2 = -0.2552, phis1 = -0.8536
+
+checkresiduals(usmelec_arima.0.1.2.0.1.1.12)
+# Ljung-Box test result shows that the residuals can be thought of as white noise. And they are normally distributed.
+
+# I want to know what model was selected if I used auto.arima function. I'll try it.
+usmelec_autoarima <- auto.arima(
+  usmelec,
+  lambda = BoxCox.lambda(usmelec)
+)
+
+usmelec_autoarima
+# The result is ARIMA(2, 1, 4)(0, 0, 2)[12] with drift after Box-Cox transformation model. AIC is -4722. But I can't compare the AIC value with what I got above, because the number of differencing was different(Differencing changes the way the likelihood is computed).
+
+checkresiduals(usmelec_autoarima)
+# And the residuals aren't like white noise. Therefore I'll choose ARIMA(0, 1, 2)(0, 1, 1)[12] with Box-Cox transformation model.
+
+# f. Forecast the next 15 years of electricity generation by the U.S. electric industry. Get the latest figures from https://goo.gl/WZIItv to check the accuracy of your forecasts.
+fc_usmelec_arima.0.1.2.0.1.1.12 <- forecast(
+  usmelec_arima.0.1.2.0.1.1.12,
+  h = 12*15
+)
+
+# Get the latest figures.
+usmelec.new <- read.csv("MER_T07_02A.csv", sep = ",")
+
+# need to do data munging before using the data.
+# make new columns Year, Month using YYYYMM column.
+usmelec.new[, "Year"] <- as.numeric(substr(usmelec.new[, "YYYYMM"], 1, 4))
+usmelec.new[, "Month"] <- as.numeric(substr(usmelec.new[, "YYYYMM"], 5, 6))
+# make usmelec.new only have Year, Month and Value columns with net generation total data.
+usmelec.new <- subset(usmelec.new, Description == "Electricity Net Generation Total, All Sectors", select = c("Year", "Month", "Value"))
+# remove data if month is 13. They are old yearly data.
+usmelec.new <- subset(usmelec.new, Month != 13)
+# change the Value column data type to number. And divide the numbers by 1000 because the unit of the values in usmelec.new are Million KWh, not Billion KWh.
+usmelec.new[, "Value"] <- as.numeric(as.character(usmelec.new[, "Value"]))/1000
+# as.numeric(usmelec.new[, "Value"]) yields wrong data. Need to recognize the letters as character first, and then change the type as number. 
+head(usmelec.new)
+tail(usmelec.new)
+# first observation was taken in January, 1973. Final observation was taken in October, 2017.
+
+# make ts time series using usmelec.new Value column data.
+ts_usmelec.new <- ts(as.numeric(usmelec.new[, "Value"]), start = c(1973, 1), frequency = 12)
+tail(ts_usmelec.new)
+# final observation was taken in October, 2017 as expected. 
+
+autoplot(fc_usmelec_arima.0.1.2.0.1.1.12, series = "Forecasts") +
+  autolayer(ts_usmelec.new, series = "Real data") +
+  scale_x_continuous(limits = c(2010, 2030)) +
+  ggtitle("Forecast from ARIMA(0,1,2)(0,1,1)[12] with real data")
+# Real data are really similar to the forecasts. Even when they were different, real data didn't get out of the prediction interval.
+
+# g. How many years of forecasts do you think are sufficiently accurate to be usable?
+# In usmelec data case, even 4 years of forecasts were sufficiently accurate to be usable. I think that it happened because the pattern in the data almost didn't change.
+
+```
 
 
 12. For the mcopper data:
