@@ -1,5 +1,12 @@
 # Chapter 9
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Load_packages}
+
+library(fpp2)
+library(xlsx)
+
+```
+
 1. Consider monthly sales and advertising data for an automotive parts company (data set advert).
 
 a. Plot the data using autoplot. Why is it useful to set facets=TRUE?
