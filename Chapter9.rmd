@@ -1,0 +1,42 @@
+# Chapter 9
+
+1. Consider monthly sales and advertising data for an automotive parts company (data set advert).
+
+a. Plot the data using autoplot. Why is it useful to set facets=TRUE?
+b. Fit a standard regression model yt = a + b*xt + nt where yt denotes sales and xt denotes advertising using the tslm() function.
+c. Show that the residuals have significant autocorrelation.
+d. What difference does it make you use the function instead:
+  Arima(advert[,"sales"], xreg=advert[,"advert"], order=c(0,0,0))
+e. Refit the model using auto.arima(). How much difference does the error model make to the estimated parameters? What ARIMA model for the errors is selected?
+f. Check the residuals of the fitted model.
+g. Assuming the advertising budget for the next six months is exactly 10 units per month, produce and plot sales forecasts with prediction intervals for the next six months.
+
+
+2. This exercise uses data set huron giving the level of Lake Huron from 1875-1972.
+
+a. Fit a piecewise linear trend model to the Lake Huron data with a knot at 1920 and an ARMA error structure.
+b. Forecast the level for the next 30 years.
+
+
+3. This exercise concerns motel: the total monthly takings from accommodation and the total room nights occupied at hotels, motels, and guest houses in Victoria, Australia, between January 1980 and June 1995. Total monthly takings are in thousands of Australian dollars; total room nights occupied are in thousands.
+
+a. Use the data to calculate the average cost of a night's accommodation in Victoria each month.
+b. Estimate the monthly CPI.
+c. Produce time series plots of both variables and explain why logarithms of both variables need to be taken before fitting any models.
+d. Fit an appropriate regression model with ARIMA errors. Explain your reasoning in arriving at the final model.
+e. Forecast the average price per room for the next twelve months using your fitted model. (Hint: You will need to produce forecasts of the CPI figures first.)
+
+
+4. We fitted a harmonic regression model to part of the gasoline series in Exercise 6 in Section 5.10. We will now revisit this model, and extend it to include more data and ARMA errors.
+
+a. Using tslm, fit a harmonic regression with a piecewise linear time trend to the full gasoline series. Select the position of the knots in the trend and the appropriate number of Fourier terms to include by minimizing the AICc or CV value.
+b. Now refit the model using auto.arima to allow for correlated errors, keeping the same predictor variables as you used with tslm.
+c. Check the residuals of the final model using the checkresiduals() function. Do they look sufficiently like white noise to continue? If not, try modifying your model, or removing the first few years of data.
+d. Once you have a model with white noise residuals, produce forecasts for the next year.
+
+6. For the retail time series considered in earlier chapters:
+a. Develop an appropriate dynamic regression model with Fourier terms for the seasonality. Use the AIC to select the number of Fourier terms to include in the model. (You will probably need to use the same Box-Cox transformation you identified previously.)
+b. Check the residuals of the fitted model. Does the residual series look like white noise?
+c. Compare the forecasts with those you obtained earlier using alternative models.
+
+### Question 5 isn't related with coding that I didn't include it in here.
