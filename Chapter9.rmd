@@ -78,8 +78,43 @@ autoplot(fc_advert_dreg.auto)
 
 2. This exercise uses data set huron giving the level of Lake Huron from 1875-1972.
 
-a. Fit a piecewise linear trend model to the Lake Huron data with a knot at 1920 and an ARMA error structure.
-b. Forecast the level for the next 30 years.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question2}
+
+# a. Fit a piecewise linear trend model to the Lake Huron data with a knot at 1920 and an ARMA error structure.
+autoplot(huron)
+
+t <- time(huron)
+t.knot <- 1920
+# piecewise time variable. Before knot year(1920), all values are 0, but after the year, the values increase as year increases.
+t.pw <- ts(pmax(0, t - t.knot), start = t[1])
+huron_xreg <- cbind(t = t, t.pw = t.pw)
+huron_dreg.auto <- auto.arima(
+  huron, xreg = huron_xreg
+)
+
+huron_dreg.auto
+# Regression with AR(2) errors model.
+
+autoplot(huron) +
+  autolayer(huron_dreg.auto$fitted)
+
+# b. Forecast the level for the next 30 years.
+h <- 30
+t.new <- t[length(t)] + seq(h)
+t.pw.new <- t.pw[length(t.pw)] + seq(h)
+newdata <- cbind(t = t.new, t.pw = t.pw.new) %>% as.data.frame()
+
+fc_huron_dreg.auto <- forecast(
+  huron_dreg.auto, xreg = newdata, h = 30
+)
+
+autoplot(fc_huron_dreg.auto)
+# The level of lake Huron was forecasted to decrease fastly first and then to increase slowly.
+
+checkresiduals(fc_huron_dreg.auto)
+# The residuals are like white noise.
+
+```
 
 
 3. This exercise concerns motel: the total monthly takings from accommodation and the total room nights occupied at hotels, motels, and guest houses in Victoria, Australia, between January 1980 and June 1995. Total monthly takings are in thousands of Australian dollars; total room nights occupied are in thousands.
