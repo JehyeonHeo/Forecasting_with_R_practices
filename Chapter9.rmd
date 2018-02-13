@@ -119,11 +119,80 @@ checkresiduals(fc_huron_dreg.auto)
 
 3. This exercise concerns motel: the total monthly takings from accommodation and the total room nights occupied at hotels, motels, and guest houses in Victoria, Australia, between January 1980 and June 1995. Total monthly takings are in thousands of Australian dollars; total room nights occupied are in thousands.
 
-a. Use the data to calculate the average cost of a night's accommodation in Victoria each month.
-b. Estimate the monthly CPI.
-c. Produce time series plots of both variables and explain why logarithms of both variables need to be taken before fitting any models.
-d. Fit an appropriate regression model with ARIMA errors. Explain your reasoning in arriving at the final model.
-e. Forecast the average price per room for the next twelve months using your fitted model. (Hint: You will need to produce forecasts of the CPI figures first.)
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question3}
+
+# a. Use the data to calculate the average cost of a night's accommodation in Victoria each month.
+autoplot(motel, facets = TRUE)
+
+avg.cost_night.room <- motel[, "Takings"] / motel[, "Roomnights"]
+autoplot(avg.cost_night.room)
+# Average cost of a night's accomodation in Victoria increased fastly until 1990, and then just oscillated without increasing until 1995.
+
+# b. Estimate the monthly CPI.
+# I'll use ARIMA model to estimate monthly CPI.
+# I'll use log transformation before fitting the model using lambda = 0 option.
+CPI_autoarima <- auto.arima(
+  motel[, "CPI"], lambda = 0
+)
+
+autoplot(motel[, "CPI"]) +
+  autolayer(CPI_autoarima$fitted)
+# Fitted values of ARIMA model show the estimates of monthly CPI.
+
+# c. Produce time series plots of both variables and explain why logarithms of both variables need to be taken before fitting any models.
+autoplot(avg.cost_night.room)
+autoplot(CPI_autoarima$fitted)
+# logarithms can make the variations almost same for all the time. It can also make slowly increasing data linearly. Therefore it would be better for the above 2 variables to take logarithms before fitting any model.
+
+# d. Fit an appropriate regression model with ARIMA errors. Explain your reasoning in arriving at the final model.
+# fit avg.cost_night.room using linear regression model after log transformation. I will use fitted values of CPI_autoarima as a regressor.
+avg.cost_night.room_tslm <- tslm(
+  avg.cost_night.room ~ CPI_autoarima$fitted,
+  lambda = 0
+)
+
+checkresiduals(avg.cost_night.room_tslm)
+# The residuals aren't like white noise. ARIMA model can be useful to explain the autocorrelations in the residuals. Therefore I'm going to fit with dynamic regression model.
+# as I said in part c, it would be better to use logarithm transformation before fitting the model.
+
+avg.cost_night.room_dreg.auto <- auto.arima(
+  avg.cost_night.room, xreg = CPI_autoarima$fitted,
+  lambda = 0, stepwise = FALSE, approximation = FALSE
+)
+
+checkresiduals(avg.cost_night.room_dreg.auto)
+# The residuals are like white noise.
+
+# The unit of average cost is thousands of AU$. Therefore make a function to transform average cost value to have AU$ unit. I'm going to use the function in plot labeling.
+formatter1000 <- function(x){ 
+  scales::dollar(x*1000)
+}
+
+autoplot(avg.cost_night.room, series = "Data") +
+  autolayer(avg.cost_night.room_dreg.auto$fitted, series = "Dynamic regression model") +
+  autolayer(avg.cost_night.room_tslm$fitted.values, series = "Linear regression model") +
+  ylab("Avg.cost(AU$)") +
+  ggtitle("Average cost of a night's accomodation",
+          subtitle = "In Victoria, Australia") +
+  theme(plot.subtitle = element_text(size=13)) +
+  scale_y_continuous(labels = formatter1000)
+# dynamic regression model after log transformation fits better than the linear regression model.
+
+# e. Forecast the average price per room for the next twelve months using your fitted model. (Hint: You will need to produce forecasts of the CPI figures first.)
+fc_CPI_autoarima <- forecast(
+  CPI_autoarima, h = 12
+)
+
+fc_avg.cost_night.room_dreg.auto <- forecast(
+  avg.cost_night.room_dreg.auto,
+  xreg = fc_CPI_autoarima$mean,
+  h = 12
+)
+
+autoplot(fc_avg.cost_night.room_dreg.auto)
+# It is forecasted that the average cost of a night's accomodation in Victoria, Australia will be increased a little with oscillation.
+
+```
 
 
 4. We fitted a harmonic regression model to part of the gasoline series in Exercise 6 in Section 5.10. We will now revisit this model, and extend it to include more data and ARMA errors.
