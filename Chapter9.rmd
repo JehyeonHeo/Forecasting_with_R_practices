@@ -197,10 +197,163 @@ autoplot(fc_avg.cost_night.room_dreg.auto)
 
 4. We fitted a harmonic regression model to part of the gasoline series in Exercise 6 in Section 5.10. We will now revisit this model, and extend it to include more data and ARMA errors.
 
-a. Using tslm, fit a harmonic regression with a piecewise linear time trend to the full gasoline series. Select the position of the knots in the trend and the appropriate number of Fourier terms to include by minimizing the AICc or CV value.
-b. Now refit the model using auto.arima to allow for correlated errors, keeping the same predictor variables as you used with tslm.
-c. Check the residuals of the final model using the checkresiduals() function. Do they look sufficiently like white noise to continue? If not, try modifying your model, or removing the first few years of data.
-d. Once you have a model with white noise residuals, produce forecasts for the next year.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question4}
+
+# a. Using tslm, fit a harmonic regression with a piecewise linear time trend to the full gasoline series. Select the position of the knots in the trend and the appropriate number of Fourier terms to include by minimizing the AICc or CV value.
+str(gasoline)
+head(gasoline)
+
+autoplot(gasoline)
+# It looked like this data can be divided into 3 parts. First part is increase from the 1991(start) to June, 2007. Second part is decrease from July, 2007 to the end of 2012. Third part is increase from 2013 to 2017(end). 
+# the data is weekly data. Therefore I'll set first knot as 2007.5 and second knot as 2013.
+t <- time(gasoline)
+t.knot1 <- 2007.5
+t.knot2 <- 2013
+t.pw1 <- ts(pmax(0, t - t.knot1), start = t[1],
+            frequency = 365.25/7)
+t.pw2 <- ts(pmax(0, t - t.knot2), start = t[1],
+            frequency = 365.25/7)
+
+# Set default AICc as infinite and default number of pairs as 0.
+AICc <- Inf
+K_min.Aicc <- 0
+
+# use for loop to find the harmonic regression model which yields least AICc. Maximum number of repetition is 26 times because the maximum number of pairs is less than a half of the number of weeks in a year, 52.18.
+for(num in c(1:26)){
+  gasoline_tslm <- tslm(
+    gasoline ~ trend + t.pw1 + t.pw2 + fourier(
+      gasoline, K = num
+    )
+  )
+  AICc_value <- CV(gasoline_tslm)["AICc"]
+  
+  if(AICc > AICc_value){
+    AICc <- AICc_value
+  }else{
+    K_min.Aicc <- num
+    break 
+  }
+}
+
+K_min.Aicc
+# 11 Fourier pairs were chosen.
+gasoline_tslm
+# 26 variables including intercept were used.
+
+autoplot(gasoline) +
+  geom_line(color = "gray") +
+  autolayer(gasoline_tslm$fitted.values)
+# fitted values are somewhat similar to the data.
+
+# b. Now refit the model using auto.arima to allow for correlated errors, keeping the same predictor variables as you used with tslm.
+
+# gasoline_autoarima <- auto.arima(
+#   gasoline, xreg = cbind(t=t, t.pw1=t.pw1,  t.pw2=t.pw2, Fourier = fourier(gasoline, K = 11)))
+# It takes lots of time to find the optimal model. Therefore I'm going to make ARIMA(4, 0, 2)(1, 0, 0)[52] error model designating the order in the function.
+gasoline_autoarima <- Arima(
+  gasoline, xreg = cbind(t=t, t.pw1=t.pw1,  t.pw2=t.pw2, Fourier = fourier(gasoline, K = 11)),
+  order = c(4, 0, 2), seasonal = c(1, 0, 0)
+  )
+
+gasoline_autoarima
+# ARIMA(4, 0, 2)(1, 0, 0)[52] error model was chosen.
+
+# c. Check the residuals of the final model using the checkresiduals() function. Do they look sufficiently like white noise to continue? If not, try modifying your model, or removing the first few years of data.
+checkresiduals(gasoline_autoarima)
+# The residuals aren't like white noise.
+
+# I'll make dynamic regression model using data from 2000.
+gasoline.from2000 <- window(gasoline, start = 2000)
+t.from2000 <- window(t, start = 2000)
+t.pw1.from2000 <- window(t.pw1, start = 2000)
+t.pw2.from2000 <- window(t.pw2, start = 2000)
+
+# find the number of Fourier pairs for new data. 
+AICc <- Inf
+K_min.Aicc <- 0
+
+for(num in c(1:26)){
+  gasoline.from2000_tslm <- tslm(
+    gasoline.from2000 ~ trend + t.pw1.from2000 + t.pw2.from2000 + fourier(
+      gasoline.from2000, K = num
+    )
+  )
+  AICc_value <- CV(gasoline.from2000_tslm)["AICc"]
+  
+  if(AICc > AICc_value){
+    AICc <- AICc_value
+  }else{
+    K_min.Aicc <- num
+    break 
+  }
+}
+
+K_min.Aicc
+# still 11 Fourier pairs were chosen.
+gasoline.from2000_tslm
+# again, 26 variables including intercept were used.
+
+# bind new data regressors to a variable.
+xreg.from2000 <- cbind(
+  t = t.from2000, 
+  t.pw1 = t.pw1.from2000, 
+  t.pw2 = t.pw2.from2000,
+  Fourier = fourier(
+    gasoline.from2000, K = 11
+    )
+  )
+
+# It also takes some minutes to run.
+gasoline.from2000_autoarima <- auto.arima(
+  gasoline.from2000,
+  xreg = xreg.from2000
+)
+
+gasoline.from2000_autoarima
+# ARIMA(1, 0, 1)(1, 0, 1)[52] error model was chosen.
+
+checkresiduals(gasoline.from2000_autoarima)
+# The residuals aren't still like white noise.
+ggtsdisplay(gasoline.from2000_autoarima$residuals)
+# I think that if I use more autoregressive terms, I can make the residuals like white noise even if the likelihood will be worse.
+
+# The result when I tried ARIMA(6, 0, 1) error model.
+gasoline.from2000_arima.6.0.1 <- Arima(
+  gasoline.from2000,
+  xreg = xreg.from2000,
+  order = c(6, 0, 1)
+)
+
+checkresiduals(gasoline.from2000_arima.6.0.1)
+# now residuals are like white noise.
+# I finally got white-noise-like residuals by using fewer data and modifying the model bearing worse likelihood.
+
+# d. Once you have a model with white noise residuals, produce forecasts for the next year.
+h = 52
+t.new <- t.from2000[length(t.from2000)] + seq(h)/365.25
+t.pw1.new <- t.pw1.from2000[length(t.pw1.from2000)] + seq(h)/365.25
+t.pw2.new <- t.pw2.from2000[length(t.pw2.from2000)] + seq(h)/365.25
+
+xreg.new <- cbind(
+  t = t.new, 
+  t.pw1 = t.pw1.new, 
+  t.pw2 = t.pw2.new,
+  Fourier = fourier(
+    gasoline.from2000, K = 11, h = h
+    )
+  )
+
+fc_gasoline.from2000_arima.6.0.1 <- forecast(
+  gasoline.from2000_arima.6.0.1,
+  xreg = xreg.new,
+  h = h
+)
+
+autoplot(fc_gasoline.from2000_arima.6.0.1)
+# It looked like the forecasts are reasonable.
+
+```
+
 
 6. For the retail time series considered in earlier chapters:
 a. Develop an appropriate dynamic regression model with Fourier terms for the seasonality. Use the AIC to select the number of Fourier terms to include in the model. (You will probably need to use the same Box-Cox transformation you identified previously.)
