@@ -1,0 +1,13 @@
+# Chapter 10
+
+1. Write out the S matrices for the Australian tourism hierarchy and the Australian prison grouped structure. Use the smatrix command to verify your answers.
+
+3. Generate 8-step-ahead bottom-up forecasts using ARIMA models for the visnights Australian domestic tourism data. Plot the coherent forecasts by level and comment on their nature. Are you satisfied with these forecasts?
+
+4. Model the aggregate series for Australian domestic tourism data visnights using an ARIMA model. Comment on the model. Generate and plot 8-step-ahead forecasts from the ARIMA model and compare these with the bottom-up forecasts generated in question 3 for the aggregate level.
+
+5. Generate 8-step-ahead optimally reconciled coherent forecasts using ARIMA base forecasts for the visnights Australian domestic tourism data. Plot the coherent forecasts by level and comment on their nature. How and why are these different to the bottom-up forecasts generated in question 3 above.
+
+6. Define as a test-set the last two years of the visnights Australian domestic tourism data. Generate, bottom-up, top-down and optimally reconciled forecasts for this period and compare their forecasts accuracy.
+
+### Question 2 isn't related with coding that I didn't include it in here.
