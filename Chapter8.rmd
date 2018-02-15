@@ -964,7 +964,7 @@ autoplot(fc_retail_autoarima$mean, series = "ARIMA") +
 accuracy(fc_retail_autoarima, retail.new.test)
 accuracy(fc_retail_ets, retail.new.test)
 accuracy(fc_retail_snaive, retail.new.test)
-# With ACF1, all errors show that the Holt-Winters' model was best. The next one was ARIMA model. Seasonal naive model showed the poorest forecasting accuracy.
+# Without ACF1, all errors show that the Holt-Winters' model was best. The next one was ARIMA model. Seasonal naive model showed the poorest forecasting accuracy.
 
 ```
 
