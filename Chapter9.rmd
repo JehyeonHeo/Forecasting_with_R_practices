@@ -356,8 +356,126 @@ autoplot(fc_gasoline.from2000_arima.6.0.1)
 
 
 6. For the retail time series considered in earlier chapters:
-a. Develop an appropriate dynamic regression model with Fourier terms for the seasonality. Use the AIC to select the number of Fourier terms to include in the model. (You will probably need to use the same Box-Cox transformation you identified previously.)
-b. Check the residuals of the fitted model. Does the residual series look like white noise?
-c. Compare the forecasts with those you obtained earlier using alternative models.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question6}
+
+# a. Develop an appropriate dynamic regression model with Fourier terms for the seasonality. Use the AIC to select the number of Fourier terms to include in the model. (You will probably need to use the same Box-Cox transformation you identified previously.)
+retail <- read.xlsx("retail.xlsx", 
+                    sheetIndex = 1, 
+                    startRow = 2)
+retail.ts <- ts(retail[,"A3349873A"], 
+                frequency=12, 
+                start=c(1982,4))
+
+autoplot(retail.ts)
+
+# lambda of Box-Cox transformation
+lambda_retail <- BoxCox.lambda(retail.ts)
+
+# select the number of Fourier pairs.
+min.AIC <- Inf
+K_min.Aic <- 0
+
+for(num in c(1:6)){
+  retail.ts_tslm <- tslm(
+    retail.ts ~ trend + fourier(retail.ts, K = num),
+    lambda = lambda_retail
+    )
+  
+  AIC <- CV(retail.ts_tslm)["AIC"]
+  
+  if(AIC < min.AIC){
+    min.AIC <- AIC
+    K_min.Aic <- num
+  }
+}
+
+# make harmonic regression model using the selected number of Fourier pairs.
+retail.ts_tslm <- tslm(
+  retail.ts ~ trend + fourier(retail.ts, K = K_min.Aic),
+  lambda = lambda_retail
+  )
+
+autoplot(retail.ts) +
+  autolayer(retail.ts_tslm$fitted.values)
+# seasonal patterns look similar.
+
+# Fit dynamic regression model.
+retail.ts_autoarima <- auto.arima(
+  retail.ts,
+  lambda = lambda_retail,
+  xreg = cbind(
+    Fourier = fourier(retail.ts, K = K_min.Aic),
+    time = time(retail.ts)
+    )
+)
+
+retail.ts_autoarima
+# ARIMA(0, 1, 0) error model was chosen.
+
+autoplot(retail.ts) +
+  autolayer(retail.ts_autoarima$fitted)
+# The residuals of the last 2 peak points were huge.
+
+# b. Check the residuals of the fitted model. Does the residual series look like white noise?
+checkresiduals(retail.ts_autoarima)
+# The residuals aren't like white noise.
+
+retail.ts_autoarima2 <- auto.arima(
+  retail.ts,
+  lambda = lambda_retail,
+  xreg = cbind(
+    Fourier = fourier(retail.ts, K = K_min.Aic),
+    time = time(retail.ts)
+    ),
+  approximation = FALSE,
+  stepwise = FALSE
+)
+
+retail.ts_autoarima2
+# ARIMA(0, 1, 2)(2, 0, 1)[12] error model was chosen.
+
+autoplot(retail.ts) +
+  autolayer(retail.ts_arima.2.1.0.1.0.0.12$fitted)
+# The residuals of the last 2 peak points became smaller.
+
+checkresiduals(retail.ts_autoarima2)
+# But the residuals aren't still like white noise. But I'll use this model in forecasting because these residuals are more like white noise than the model above.
+
+# c. Compare the forecasts with those you obtained earlier using alternative models.
+# Get the latest figures.
+retail.new <- read.xlsx("8501011.xlsx", 
+                        sheetName = "Data1", 
+                        startRow = 10)
+
+retail.new.ts <- ts(retail.new[, "A3349873A"],
+                    start = c(1982, 4),
+                    frequency = 12)
+
+retail.new.test <- subset(
+  retail.new.ts,
+  start = length(retail.ts) + 1
+  )
+
+# make a variable which takes future values of regressors.
+t <- time(retail.ts)
+xreg.new = cbind(
+  Fourier = fourier(retail.ts, K = K_min.Aic, h = 36),
+  time = t[length(t)] + seq(36)/12
+  )
+
+# forecast.
+fc_retail.ts_autoarima2 <- forecast(
+  retail.ts_autoarima2,
+  h = 36,
+  xreg = xreg.new
+)
+
+autoplot(fc_retail.ts_autoarima2)
+
+accuracy(fc_retail.ts_autoarima2, retail.new.test)
+# It was worse than Holt-Winters' model, but it was better than ARIMA or seasonal naive model.
+
+```
+
 
 ### Question 5 isn't related with coding that I didn't include it in here.
