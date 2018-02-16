@@ -9,6 +9,148 @@ library(hts)
 
 1. Write out the S matrices for the Australian tourism hierarchy and the Australian prison grouped structure. Use the smatrix command to verify your answers.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question1}
+
+# Australian tourism visitor nights data
+str(visnights)
+head(visnights)
+
+# make a hierachical time series using visnights time series matrix.
+# I'm going to aggregate data using the position of characters. The first three characters of each column name of visnights will be the categories at the first level of the hierarchy (States). The following five characters will be the bottom-level categories (Zones).
+tourism.hts <- hts(visnights, characters = c(3, 5))
+str(tourism.hts)
+# There are 3 levels. And there are 6 nodes for level 1 and 20 nodes for level 2. It means that the summing matrix S is 27 x 20 matrix.
+# S = 
+# |1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1| <- level 0
+# |1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0| <- row 2-7
+# |0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0|   (level 1)
+# |0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0|
+# |0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0|
+# |0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 0 0 0|
+# |0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1|
+# |1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0| <- row 8-27
+# |0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0|   (level 2)
+# |0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0|
+# |0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0|
+# |0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0|
+# |0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0|
+# |0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0|
+# |0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0|
+# |0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0|
+# |0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0|
+# |0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0|
+# |0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0|
+# |0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0|
+# |0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0|
+# |0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0|
+# |0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0|
+# |0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0|
+# |0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0|
+# |0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0|
+# |0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1|
+
+# calculate S matrix using smatrix function.
+smatrix(tourism.hts)
+
+# Australian prisoner numbers data
+str(prison)
+head(prison)
+
+# make a grouped time series using prison time series matrix. It will be a grouped time series, not hierarchical time series. It is because the gender and the legal status are different attributes. They make them different hierarchies, but need to be combined at the top level.
+# I'm going to aggregate data using the position of characters again. The first three characters of each column name of prison will be the categories states categories. The 4th character will be the gender categories, and the following 9 characters will be the legal status categories.
+prison.gts <- gts(prison, characters = c(3, 1, 9))
+str(prison.gts)
+
+# There are 3 levels. And there are 32 nodes for level 2(bottom-level). G1, G2, G3, G4, G5, G6 are level 1 and there are 48 nodes. It means that the summing matrix S is 81 x 32 matrix.
+# S = 
+# | 1111 1111 1111 1111 1111 1111 1111 1111 | <- level 0
+# | 1111 0000 0000 0000 0000 0000 0000 0000 | <- level 1
+# | 0000 1111 0000 0000 0000 0000 0000 0000 |    (G1)
+# | 0000 0000 1111 0000 0000 0000 0000 0000 |
+# | 0000 0000 0000 1111 0000 0000 0000 0000 |
+# | 0000 0000 0000 0000 1111 0000 0000 0000 |
+# | 0000 0000 0000 0000 0000 1111 0000 0000 |
+# | 0000 0000 0000 0000 0000 0000 1111 0000 |
+# | 0000 0000 0000 0000 0000 0000 0000 1111 |
+# | 1100 1100 1100 1100 1100 1100 1100 1100 | <- level 1
+# | 0011 0011 0011 0011 0011 0011 0011 0011 |    (G2)
+# | 1010 1010 1010 1010 1010 1010 1010 1010 | <- level 1
+# | 0101 0101 0101 0101 0101 0101 0101 0101 |    (G3)
+# | 1100 0000 0000 0000 0000 0000 0000 0000 | <- level 1
+# | 0011 0000 0000 0000 0000 0000 0000 0000 |    (G4)
+# | 0000 1100 0000 0000 0000 0000 0000 0000 |
+# | 0000 0011 0000 0000 0000 0000 0000 0000 |
+# | 0000 0000 1100 0000 0000 0000 0000 0000 |
+# | 0000 0000 0011 0000 0000 0000 0000 0000 |
+# | 0000 0000 0000 1100 0000 0000 0000 0000 |
+# | 0000 0000 0000 0011 0000 0000 0000 0000 |
+# | 0000 0000 0000 0000 1100 0000 0000 0000 |
+# | 0000 0000 0000 0000 0011 0000 0000 0000 |
+# | 0000 0000 0000 0000 0000 1100 0000 0000 |
+# | 0000 0000 0000 0000 0000 0011 0000 0000 |
+# | 0000 0000 0000 0000 0000 0000 1100 0000 |
+# | 0000 0000 0000 0000 0000 0000 0011 0000 |
+# | 0000 0000 0000 0000 0000 0000 0000 1100 |
+# | 0000 0000 0000 0000 0000 0000 0000 0011 |
+# | 1010 0000 0000 0000 0000 0000 0000 0000 | <- level 1
+# | 0101 0000 0000 0000 0000 0000 0000 0000 |    (G5)
+# | 0000 1010 0000 0000 0000 0000 0000 0000 |
+# | 0000 0101 0000 0000 0000 0000 0000 0000 |
+# | 0000 0000 1010 0000 0000 0000 0000 0000 |
+# | 0000 0000 0101 0000 0000 0000 0000 0000 |
+# | 0000 0000 0000 1010 0000 0000 0000 0000 |
+# | 0000 0000 0000 0101 0000 0000 0000 0000 |
+# | 0000 0000 0000 0000 1010 0000 0000 0000 |
+# | 0000 0000 0000 0000 0101 0000 0000 0000 |
+# | 0000 0000 0000 0000 0000 1010 0000 0000 |
+# | 0000 0000 0000 0000 0000 0101 0000 0000 |
+# | 0000 0000 0000 0000 0000 0000 1010 0000 |
+# | 0000 0000 0000 0000 0000 0000 0101 0000 |
+# | 0000 0000 0000 0000 0000 0000 0000 1010 |
+# | 0000 0000 0000 0000 0000 0000 0000 0101 |
+# | 1000 1000 1000 1000 1000 1000 1000 1000 | <- level 1
+# | 0100 0100 0100 0100 0100 0100 0100 0100 |    (G6)
+# | 0010 0010 0010 0010 0010 0010 0010 0010 |
+# | 0001 0001 0001 0001 0001 0001 0001 0001 |
+# | 1000 0000 0000 0000 0000 0000 0000 0000 | <- level 2
+# | 0100 0000 0000 0000 0000 0000 0000 0000 |
+# | 0010 0000 0000 0000 0000 0000 0000 0000 |
+# | 0001 0000 0000 0000 0000 0000 0000 0000 |
+# | 0000 1000 0000 0000 0000 0000 0000 0000 |
+# | 0000 0100 0000 0000 0000 0000 0000 0000 |
+# | 0000 0010 0000 0000 0000 0000 0000 0000 |
+# | 0000 0001 0000 0000 0000 0000 0000 0000 |
+# | 0000 0000 1000 0000 0000 0000 0000 0000 |
+# | 0000 0000 0100 0000 0000 0000 0000 0000 |
+# | 0000 0000 0010 0000 0000 0000 0000 0000 |
+# | 0000 0000 0001 0000 0000 0000 0000 0000 |
+# | 0000 0000 0000 1000 0000 0000 0000 0000 |
+# | 0000 0000 0000 0100 0000 0000 0000 0000 |
+# | 0000 0000 0000 0010 0000 0000 0000 0000 |
+# | 0000 0000 0000 0001 0000 0000 0000 0000 |
+# | 0000 0000 0000 0000 1000 0000 0000 0000 |
+# | 0000 0000 0000 0000 0100 0000 0000 0000 |
+# | 0000 0000 0000 0000 0010 0000 0000 0000 |
+# | 0000 0000 0000 0000 0001 0000 0000 0000 |
+# | 0000 0000 0000 0000 0000 1000 0000 0000 |
+# | 0000 0000 0000 0000 0000 0100 0000 0000 |
+# | 0000 0000 0000 0000 0000 0010 0000 0000 |
+# | 0000 0000 0000 0000 0000 0001 0000 0000 |
+# | 0000 0000 0000 0000 0000 0000 1000 0000 |
+# | 0000 0000 0000 0000 0000 0000 0100 0000 |
+# | 0000 0000 0000 0000 0000 0000 0010 0000 |
+# | 0000 0000 0000 0000 0000 0000 0001 0000 |
+# | 0000 0000 0000 0000 0000 0000 0000 1000 |
+# | 0000 0000 0000 0000 0000 0000 0000 0100 |
+# | 0000 0000 0000 0000 0000 0000 0000 0010 |
+# | 0000 0000 0000 0000 0000 0000 0000 0001 |
+
+# calculate S matrix using smatrix function.
+smatrix(prison.gts)
+
+```
+
+
 3. Generate 8-step-ahead bottom-up forecasts using ARIMA models for the visnights Australian domestic tourism data. Plot the coherent forecasts by level and comment on their nature. Are you satisfied with these forecasts?
 
 4. Model the aggregate series for Australian domestic tourism data visnights using an ARIMA model. Comment on the model. Generate and plot 8-step-ahead forecasts from the ARIMA model and compare these with the bottom-up forecasts generated in question 3 for the aggregate level.
