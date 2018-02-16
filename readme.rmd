@@ -52,10 +52,10 @@
 8) Chapter9.rmd
  - 'Dynamic regression models'
  
-9) Chapter10.rmd
+9) Chapter10.rmd(not fully solved yet)
  - 'Forecasting hierarchical or grouped time series'
  
-10) Chapter11.rmd
+10) Chapter11.rmd(not solved yet)
  - 'Advanced forecasting methods'
 
 ## Acknowledgments and other useful resources
