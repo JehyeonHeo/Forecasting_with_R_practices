@@ -153,6 +153,32 @@ smatrix(prison.gts)
 
 3. Generate 8-step-ahead bottom-up forecasts using ARIMA models for the visnights Australian domestic tourism data. Plot the coherent forecasts by level and comment on their nature. Are you satisfied with these forecasts?
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question3}
+
+# Forecast
+fc_visnights_arima <- forecast(
+  tourism.hts, h = 8, method = "bu", fmethod = "arima"
+)
+
+# Plot the coherent forecasts by level.
+plot(fc_visnights_arima, levels = 0, color_lab = TRUE)
+title(main = "Total visitor nights")
+# show strong seasonality.
+
+plot(fc_visnights_arima, levels = 1, color_lab = TRUE)
+title(main = "Grouped by State")
+# On average, the number of visitors to New South Wales were biggest. However, in 3rd quarters, the number of visitors to Queensland were bigger than the one for NSW.
+# The number of visitors to NSW, VIC, WAU show strong seasonality, but the numbers of WAU and Other had weaker seasonality. 
+
+# level 2 coherent forecasts are equal to the base forecasts.
+plot(fc_visnights_arima, levels = 2, color_lab = TRUE)
+title(main = "Grouped by Zone in each state")
+# The number of visitors to Queensland Metro area were the biggest at all times.
+
+# I'm satisfied with the forecasts.
+
+```
+
 4. Model the aggregate series for Australian domestic tourism data visnights using an ARIMA model. Comment on the model. Generate and plot 8-step-ahead forecasts from the ARIMA model and compare these with the bottom-up forecasts generated in question 3 for the aggregate level.
 
 5. Generate 8-step-ahead optimally reconciled coherent forecasts using ARIMA base forecasts for the visnights Australian domestic tourism data. Plot the coherent forecasts by level and comment on their nature. How and why are these different to the bottom-up forecasts generated in question 3 above.
