@@ -1,0 +1,67 @@
+# Forecasting using R language practices
+
+## Introduction
+
+- I made this repository to solve the forecasting questions in 'Forecasting: Principles and Practice(2nd Ed.)'. The book was written by Rob J Hyndman and George Athanasopoulos. You can read online version of the book in [here](https://otexts.org/fpp2/).
+
+### Caution
+
+- The codes what I wrote are just my solutions, not related with official solution. They are the result of my practice, not the authors' solutions. I did my best to solve the questions as accurately as possible, but there can be wrong answers.
+
+- Some questions ask you to download data and forecast using them. You need to download the data for the questions.
+
+- I didn't solve the questions which aren't related with coding. I mentioned them at the bottom of each file. 
+
+- I didn't solve the questions of Chapter 1 and 4.
+
+## Prerequisites
+
+- You need to understand about the concepts and algorithms behind the forecast models and evaluation methods. You can study them in [here](https://otexts.org/fpp2/).
+
+- All codes are written in rmd(r markdown) files. Therefore you need to install R and Rstudio to open the files
+
+- If you already installed the Rstudio, you need to check if fpp2 package is already installed. It is the most important package that I used in forecasting. If you need to install it, type below code in the console.
+
+  install.packages("fpp2")
+  
+  You also need to install other packages like xlsx, rdatamarket, hts, seasonal, tseries, etc.
+  
+## Built With
+
+1) readme.rmd
+ - Introduce about this repository.
+
+2) Chapter2.rmd
+ - 'Time series graphics'
+
+3) Chapter3.rmd
+ - 'The forecaster's toolbox'
+ 
+4) Chapter5.rmd
+ - 'Linear regression models'
+ 
+5) Chapter6.rmd
+ - 'Time series decomposition'
+ 
+6) Chapter7.rmd
+ - 'Exponential smoothing'
+ 
+7) Chapter8.rmd
+ - 'ARIMA models'
+ 
+8) Chapter9.rmd
+ - 'Dynamic regression models'
+ 
+9) Chapter10.rmd
+ - 'Forecasting hierarchical or grouped time series'
+ 
+10) Chapter11.rmd
+ - 'Advanced forecasting methods'
+
+## Acknowledgments and other useful resources
+
+- Forecasting: Principles and Practice online [textbook]( https://otexts.org/fpp2/)
+
+- r forecast package: https://github.com/robjhyndman/forecast
+
+- Professor Rob J Hyndman's [blog](https://robjhyndman.com/)
