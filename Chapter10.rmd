@@ -181,6 +181,45 @@ title(main = "Grouped by Zone in each state")
 
 4. Model the aggregate series for Australian domestic tourism data visnights using an ARIMA model. Comment on the model. Generate and plot 8-step-ahead forecasts from the ARIMA model and compare these with the bottom-up forecasts generated in question 3 for the aggregate level.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question4}
+str(visnights)
+head(visnights)
+
+# aggregate visnights time series matrix.
+visnights_total <- rowSums(visnights)
+visnights_total.ts <- ts(visnights_total, 
+                         start = 1998, 
+                         frequency = 4)
+str(visnights_total.ts)
+
+# model the aggregated data using ARIMA model and forecast.
+visnights_total_autoarima <- auto.arima(
+  visnights_total.ts
+)
+
+autoplot(visnights_total.ts) +
+  autolayer(visnights_total_autoarima$fitted)
+# It looked like the model didn't fit well to the aggregated data.
+
+fc_visnights_total_autoarima <- forecast(
+  visnights_total_autoarima, h = 8
+)
+
+fc_visnights_total_autoarima$model
+# ARIMA(0, 1, 1)(0, 1, 1)[4] model was chosen.
+
+# get ts object of bottom-up forecasts.
+visnights_total_bu.ts <- ts(
+  rowSums(fc_visnights_arima$bts), 
+  start = 2017, 
+  frequency = 4)
+
+autoplot(fc_visnights_total_autoarima) +
+  autolayer(visnights_total_bu.ts)
+# The forecasts have increasing trend with strong seasonality. Bottom-up forecasts had non-increasing trend that the values were lower. Whether the lower level data are considered made such difference in forecasting.
+
+```
+
 5. Generate 8-step-ahead optimally reconciled coherent forecasts using ARIMA base forecasts for the visnights Australian domestic tourism data. Plot the coherent forecasts by level and comment on their nature. How and why are these different to the bottom-up forecasts generated in question 3 above.
 
 6. Define as a test-set the last two years of the visnights Australian domestic tourism data. Generate, bottom-up, top-down and optimally reconciled forecasts for this period and compare their forecasts accuracy.
