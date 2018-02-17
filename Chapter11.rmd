@@ -1,10 +1,26 @@
 # Chapter 11
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Load_packages}
+
+library(fpp2)
+library(vars)
+library(xlsx)
+
+```
+
 1. Use the tbats() function to model your retail time series.
 
-a. Check the residuals and produce forecasts.
-b. Does this completely automated approach work for these data?
-c. Have you saved any degrees of freedom by using Fourier terms rather than seasonal differencing?
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question1}
+
+# a. Check the residuals and produce forecasts.
+
+
+# b. Does this completely automated approach work for these data?
+
+
+# c. Have you saved any degrees of freedom by using Fourier terms rather than seasonal differencing?
+
+```
 
 
 2. Consider the weekly data on US finished motor gasoline products supplied (thousands of barrels per day) (series gasoline):
