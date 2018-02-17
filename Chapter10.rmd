@@ -222,6 +222,41 @@ autoplot(fc_visnights_total_autoarima) +
 
 5. Generate 8-step-ahead optimally reconciled coherent forecasts using ARIMA base forecasts for the visnights Australian domestic tourism data. Plot the coherent forecasts by level and comment on their nature. How and why are these different to the bottom-up forecasts generated in question 3 above.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question5}
+
+# I want to do optimally reconciled coherent forecasts using MinT estimator. I need to decide (base forecast) covariance model for the estimator.
+str(visnights)
+str(smatrix(tourism.hts))
+# The number of time points(T) is 76 and the number of rows(m) in S matrix is 27. T >= m. Therefore I'm going to use sample covariance.
+
+# forecast
+fc_visnights_arima_opt <- forecast(
+  tourism.hts, h = 8,
+  method = "comb", weights = "mint", covariance = "sam",
+  fmethod = "arima"
+)
+
+# Plot the coherent forecasts by level.
+plot(fc_visnights_arima_opt, levels = 0, col = "red")
+par(new = TRUE, xpd = TRUE)
+plot(fc_visnights_arima, levels = 0, col = "blue")
+title(main = "Total number of visitors")
+legend("bottomright", legend = c("Optimal", "Bottom-up"), title = "Coherent forecast", col = c("red", "blue"), lty = c(1, 1), bty = "n", cex = 0.5)
+# Top level coherent forecasts show that the optimally reconciled method yielded higher forecast values than the bottom-up method. But the values aren't bigger than the forecasts of aggregated data's ARIMA model.
+# It happened because the top level forecasts of aggregated data's ARIMA model affected the optimal values smaller while the aggregated value from bottom-level forecasts affected the values bigger.
+
+plot(fc_visnights_arima_opt, levels = 1, color_lab = TRUE)
+plot(fc_visnights_arima, levels = 1, color_lab = TRUE)
+# Level 1 coherent forecasts show that the optimally reconciled method yielded higher forecast values especially for peaks than the bottom-up method.
+# It looked like the top-level forecasts affected more than the bottom-level forecasts especially to the seasonal peak forecast values.
+
+plot(fc_visnights_arima_opt, levels = 2, color_lab = TRUE)
+plot(fc_visnights_arima, levels = 2, color_lab = TRUE)
+# For some categories, the forecasts became bigger when optimally reconciled method was used while for the others, the forecasts became smaller.
+# The increase and decrease were different by each category because of the affiliation differences.
+
+```
+
 6. Define as a test-set the last two years of the visnights Australian domestic tourism data. Generate, bottom-up, top-down and optimally reconciled forecasts for this period and compare their forecasts accuracy.
 
 ### Question 2 isn't related with coding that I didn't include it in here.
