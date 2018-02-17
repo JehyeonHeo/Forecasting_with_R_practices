@@ -259,4 +259,88 @@ plot(fc_visnights_arima, levels = 2, color_lab = TRUE)
 
 6. Define as a test-set the last two years of the visnights Australian domestic tourism data. Generate, bottom-up, top-down and optimally reconciled forecasts for this period and compare their forecasts accuracy.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question6}
+
+tourism.hts.train <- window(tourism.hts, end=c(2014,4))
+tourism.hts.test <- window(tourism.hts, start=2015)
+
+fc_visnights_ets_opt = forecast(
+  tourism.hts.train, h = 8, 
+  method = "comb", weights = "wls", fmethod = "ets"
+  )
+fc_visnights_ets_bu = forecast(
+  tourism.hts.train, h = 8, 
+  method = "bu", fmethod = "ets"
+  )
+
+tab <- matrix(NA, ncol = 4, nrow = 4)
+rownames(tab) <- c("Total", "State", "Bottom", "All series")
+colnames(tab) <- c("Bottom-up MAPE", "Bottom-up MASE", "Optimal MAPE", "Optimal MASE")
+# I'll use MAPE and MASE as evaluation method.
+
+tab[1,] <- c(
+  accuracy.gts(
+    fc_visnights_ets_bu,
+    tourism.hts.test,
+    levels = 0
+    )[c("MAPE","MASE"),"Total"],
+  accuracy.gts(
+    fc_visnights_ets_opt, 
+    tourism.hts.test,
+    levels = 0
+    )[c("MAPE","MASE"),"Total"]
+  )
+
+j=2
+for(i in c(1:2)){
+  tab[j,] <- c(
+    mean(accuracy.gts(
+      fc_visnights_ets_bu,
+      tourism.hts.test,
+      levels = i)["MAPE",]),
+    mean(accuracy.gts(
+      fc_visnights_ets_bu,
+      tourism.hts.test,
+      levels = i)["MASE",]),
+    mean(accuracy.gts(
+      fc_visnights_ets_opt,
+      tourism.hts.test,
+      levels = i)["MAPE",]),
+    mean(accuracy.gts(
+      fc_visnights_ets_opt,
+      tourism.hts.test,
+      levels = i)["MASE",])
+  )
+  j=j+1
+}
+
+tab[4,] <- c(
+  mean(accuracy.gts(
+      fc_visnights_ets_bu,
+      tourism.hts.test
+      )["MAPE",]),
+  mean(accuracy.gts(
+      fc_visnights_ets_bu,
+      tourism.hts.test
+      )["MASE",]),
+  mean(accuracy.gts(
+      fc_visnights_ets_opt,
+      tourism.hts.test
+      )["MAPE",]),
+  mean(accuracy.gts(
+      fc_visnights_ets_opt,
+      tourism.hts.test
+      )["MASE",])
+)
+
+knitr::kable(tab, digits=2, booktabs=TRUE)
+# all evaluation results show that forecasts of optiamlly reconciled method were more accurate than the bottom-up forecasts.
+
+plot(fc_visnights_ets_opt, levels = 0)
+plot(fc_visnights_ets_bu, levels = 0)
+plot(tourism.hts, level = 0)
+# can't see increasing trend in the forecasts of optimally reconciled method and the bottom-up forecasts. Bottom-up forecasts are lowest.
+
+```
+
 ### Question 2 isn't related with coding that I didn't include it in here.
