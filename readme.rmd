@@ -24,7 +24,7 @@
 
   install.packages("fpp2")
   
-  You also need to install other packages like xlsx, rdatamarket, hts, seasonal, tseries, etc.
+  You also need to install other packages like xlsx, rdatamarket, hts, seasonal, tseries, vars, etc.
   
 ## Built With
 
@@ -33,6 +33,10 @@
 
 2) Chapter2.rmd
  - 'Time series graphics'
+ - learn how to make ts object and deal with it using several functions like autoplot(), frequency(), etc.
+ - learn how to draw several types of plots like seasonal plot, seasonal subseries plot, scatter plots and lag plot, etc.
+ - Understand what is autocorrelation and learn how to draw autocorrelation function(ACF) plot.
+ - Understand what is white noise and learn how to discern white noise series using ACF plots.
 
 3) Chapter3.rmd
  - 'The forecaster's toolbox'
@@ -52,7 +56,7 @@
 8) Chapter9.rmd
  - 'Dynamic regression models'
  
-9) Chapter10.rmd(not fully solved yet)
+9) Chapter10.rmd
  - 'Forecasting hierarchical or grouped time series'
  
 10) Chapter11.rmd(not solved yet)
