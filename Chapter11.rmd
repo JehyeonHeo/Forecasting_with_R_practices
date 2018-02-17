@@ -1,0 +1,17 @@
+# Chapter 11
+
+1. Use the tbats() function to model your retail time series.
+
+a. Check the residuals and produce forecasts.
+b. Does this completely automated approach work for these data?
+c. Have you saved any degrees of freedom by using Fourier terms rather than seasonal differencing?
+
+
+2. Consider the weekly data on US finished motor gasoline products supplied (thousands of barrels per day) (series gasoline):
+
+a. Fit a TBATS model to these data.
+b. Check the residuals and produce forecasts.
+c. Could you model these data using any of the other methods we have considered in this book?
+
+
+3. Experiment with using nnetar() on your retail data and other data we have considered in previous chapters.
