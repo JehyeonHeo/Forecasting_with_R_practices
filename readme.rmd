@@ -40,6 +40,11 @@
 
 3) Chapter3.rmd
  - 'The forecaster's toolbox'
+ - learn how to do simple forecasting using 4 benchmark methods.
+ - learn transformation methods like Box-Cox transformation and how to implement transformations to data.
+ - understand the concept of fitted values and residuals, and learn about Pormanteau tests which are used to see if the residuals are like white noise series.
+ - learn how to evaluate forecast accuracy.
+ - learn how to get prediction intervals in different situations.
  
 4) Chapter5.rmd
  - 'Linear regression models'
