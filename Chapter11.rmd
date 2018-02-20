@@ -24,8 +24,23 @@ retail_tbats <- tbats(retail.ts)
 checkresiduals(retail_tbats)
 # The residuals aren't like white noise. And they are right skewed.
 
-fc_retail_tbats <- forecast(retail_tbats)
+fc_retail_tbats <- forecast(retail_tbats, h = 36)
 autoplot(fc_retail_tbats)
+
+# test accuracy using future data.
+retail.new <- read.xlsx("8501011.xlsx", 
+                        sheetName = "Data1", 
+                        startRow = 10)
+retail.new.ts <- ts(retail.new[, "A3349873A"],
+                    start = c(1982, 4),
+                    frequency = 12)
+retail.new.test <- subset(
+  retail.new.ts,
+  start = length(retail.ts) + 1
+  )
+
+accuracy(fc_retail_tbats, retail.new.test)
+# TBATS model was worse than Holt-Winters' or dynamic regression model. It was better than ARIMA model or seasonal naive method.
 
 # b. Does this completely automated approach work for these data?
 # Judging from the forecasts shown in plot, it looked like that TBATS model worked for these data well.
