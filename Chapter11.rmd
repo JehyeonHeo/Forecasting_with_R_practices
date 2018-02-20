@@ -87,3 +87,56 @@ autoplot(fc_gasoline_tbats)
 
 
 3. Experiment with using nnetar() on your retail data and other data we have considered in previous chapters.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question3}
+
+retail_nnetar <- nnetar(
+  retail.ts, lambda = BoxCox.lambda(retail.ts)
+  )
+fc_retail_nnetar <- forecast(retail_nnetar, h = 36)
+autoplot(fc_retail_nnetar)
+
+# test accuracy using future data.
+accuracy(fc_retail_nnetar, retail.new.test)
+# It is better than all methods I tried so far, including Holt-Winters'.
+
+# experiment with ibmclose data.
+ibmclose_nnetar <- nnetar(ibmclose)
+fc_ibmclose_nnetar <- forecast(ibmclose_nnetar)
+autoplot(fc_ibmclose_nnetar)
+# Even neural network method yielded naive-method like result. It looked like there wan't any rule in lagged values.
+
+# experiment with usmelec data.
+usmelec_nnetar <- nnetar(
+  usmelec, lambda = BoxCox.lambda(usmelec)
+  )
+
+fc_usmelec_nnetar <- forecast(
+  usmelec_nnetar, h = 12*4
+)
+
+autoplot(fc_usmelec_nnetar)
+
+# get the latest figures
+usmelec.new <- read.csv("MER_T07_02A.csv", sep = ",")
+usmelec.new[, "Year"] <- as.numeric(substr(usmelec.new[, "YYYYMM"], 1, 4))
+usmelec.new[, "Month"] <- as.numeric(
+  substr(usmelec.new[, "YYYYMM"], 5, 6)
+  )
+usmelec.new <- subset(usmelec.new, Description == "Electricity Net Generation Total, All Sectors", select = c("Year", "Month", "Value"))
+usmelec.new <- subset(usmelec.new, Month != 13)
+usmelec.new[, "Value"] <- as.numeric(
+  as.character(usmelec.new[, "Value"])
+  )/1000
+ts_usmelec.new <- ts(as.numeric(usmelec.new[, "Value"]), start = c(1973, 1), frequency = 12)
+
+# get accuracy
+accuracy(fc_usmelec_nnetar, ts_usmelec.new)
+autoplot(fc_usmelec_nnetar) +
+  autolayer(window(ts_usmelec.new, start = c(2013, 7))) +
+  scale_x_continuous(limits = c(2010, 2019)) +
+  scale_y_continuous(limits = c(250, 450))
+# It looked like neural network model was fitted well to the data.
+
+```
+
