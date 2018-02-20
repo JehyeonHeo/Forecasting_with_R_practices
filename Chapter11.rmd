@@ -52,9 +52,23 @@ retail_tbats
 
 2. Consider the weekly data on US finished motor gasoline products supplied (thousands of barrels per day) (series gasoline):
 
-a. Fit a TBATS model to these data.
-b. Check the residuals and produce forecasts.
-c. Could you model these data using any of the other methods we have considered in this book?
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question2}
+
+# a. Fit a TBATS model to these data.
+gasoline_tbats <- tbats(gasoline)
+
+# b. Check the residuals and produce forecasts.
+checkresiduals(gasoline_tbats)
+# The residuals aren't like white noise.
+
+fc_gasoline_tbats <- forecast(gasoline_tbats)
+autoplot(fc_gasoline_tbats)
+# It looked like TBATS model isn't fitted well.
+
+# c. Could you model these data using any of the other methods we have considered in this book?
+# I think that as I did in Question 4 of Chapter 9, dynamic regression model is the best for the data. I think so because regression can deal with the piecewise trends in the data, and ARIMA model can be fitted for residuals well.
+
+```
 
 
 3. Experiment with using nnetar() on your retail data and other data we have considered in previous chapters.
