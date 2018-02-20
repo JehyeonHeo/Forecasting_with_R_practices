@@ -13,12 +13,39 @@ library(xlsx)
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Question1}
 
 # a. Check the residuals and produce forecasts.
+retail <- read.xlsx("retail.xlsx",
+                    sheetIndex = 1,
+                    startRow = 2)
+retail.ts <- ts(retail[,"A3349873A"], 
+                frequency=12, 
+                start=c(1982,4))
 
+retail_tbats <- tbats(retail.ts)
+checkresiduals(retail_tbats)
+# The residuals aren't like white noise. And they are right skewed.
+
+fc_retail_tbats <- forecast(retail_tbats)
+autoplot(fc_retail_tbats)
 
 # b. Does this completely automated approach work for these data?
-
+# Judging from the forecasts shown in plot, it looked like that TBATS model worked for these data well.
 
 # c. Have you saved any degrees of freedom by using Fourier terms rather than seasonal differencing?
+retail_tbats
+# TBATS(0.126, {5, 0}, 1, {<12, 5>})
+# TBATS(lambda, {p, q}, damping, {<freq, num of terms>})
+# alpha - level(lt) smoothing parameter
+# beta - trend(bt) smoothing parameter
+# gamma1 - seasonal level(sj,t) smoothing parameter
+# gamma2 - seasonal growth(s*j,t) smoothing parameter
+# j - Fourier term(j times of base frequency)
+# Seed states - initial state variables. In this case, there are 17. Maybe first and second of them are l0 and b0, 3rd to 7th are s1,0 to s5,0, 8th to 12th are s*1,0 to s*5,0, 13th to 17th are d-4 to d0. d is disturbance, and it can be thought of as white noise. d-4 to d0 are all 0s because errors before the first time point can be assumed as 0.
+# When I used checkresiduals function, I could know that the degrees of freedom of the model are 27. Maybe 2 are related with level and trend, 5 are related with AR(5) and the rest 20 are related with seasonality. 20 = 2(smoothing parameters) x 2(cos, sin) x 5(number of terms).
+
+# When I used ARIMA model for these data, ARIMA(1, 0, 2)(0, 1, 1)[12] with drift model was chosen. This model used seasonal differencing to model seasonal component.
+# When I used checkresiduals function, I could know that the degrees of freedom of the model are 5. Maybe 1 for AR(1), 2 for MA(2), 1 for seasonal MA(1) and final 1 for drift coefficient.
+
+# When just compared degrees of freedom related with seasonal component, tbats model saved 18 dofs. Having more dofs means more flexibility. TBATS model got more dofs, therefore the model can deal with more number of different seasonalities at a time.
 
 ```
 
