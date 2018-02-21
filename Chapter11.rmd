@@ -140,6 +140,8 @@ usmelec.new.ts <- ts(
 
 # get accuracy
 accuracy(fc_usmelec_nnetar, usmelec.new.ts)
+# Without ME and MPE, all the other errors show that neural network model is better than ARIMA model to forecast the usmelec data.
+
 autoplot(fc_usmelec_nnetar) +
   autolayer(window(usmelec.new.ts, start = c(2013, 7))) +
   scale_x_continuous(limits = c(2010, 2019)) +
