@@ -668,26 +668,40 @@ usmelec.new <- read.csv("MER_T07_02A.csv", sep = ",")
 
 # need to do data munging before using the data.
 # make new columns Year, Month using YYYYMM column.
-usmelec.new[, "Year"] <- as.numeric(substr(usmelec.new[, "YYYYMM"], 1, 4))
-usmelec.new[, "Month"] <- as.numeric(substr(usmelec.new[, "YYYYMM"], 5, 6))
+usmelec.new[, "Year"] <- as.numeric(
+  substr(usmelec.new[, "YYYYMM"], 1, 4)
+  )
+usmelec.new[, "Month"] <- as.numeric(
+  substr(usmelec.new[, "YYYYMM"], 5, 6)
+  )
 # make usmelec.new only have Year, Month and Value columns with net generation total data.
-usmelec.new <- subset(usmelec.new, Description == "Electricity Net Generation Total, All Sectors", select = c("Year", "Month", "Value"))
+usmelec.new <- subset(
+  usmelec.new, 
+  Description == "Electricity Net Generation Total, All Sectors", 
+  select = c("Year", "Month", "Value")
+  )
 # remove data if month is 13. They are old yearly data.
 usmelec.new <- subset(usmelec.new, Month != 13)
 # change the Value column data type to number. And divide the numbers by 1000 because the unit of the values in usmelec.new are Million KWh, not Billion KWh.
-usmelec.new[, "Value"] <- as.numeric(as.character(usmelec.new[, "Value"]))/1000
+usmelec.new[, "Value"] <- as.numeric(
+  as.character(usmelec.new[, "Value"])
+  )/1000
 # as.numeric(usmelec.new[, "Value"]) yields wrong data. Need to recognize the letters as character first, and then change the type as number. 
 head(usmelec.new)
 tail(usmelec.new)
 # first observation was taken in January, 1973. Final observation was taken in October, 2017.
 
 # make ts time series using usmelec.new Value column data.
-ts_usmelec.new <- ts(as.numeric(usmelec.new[, "Value"]), start = c(1973, 1), frequency = 12)
-tail(ts_usmelec.new)
+usmelec.new.ts <- ts(
+  as.numeric(usmelec.new[, "Value"]), 
+  start = c(1973, 1), 
+  frequency = 12
+  )
+tail(usmelec.new.ts)
 # final observation was taken in October, 2017 as expected. 
 
 autoplot(fc_usmelec_arima.0.1.2.0.1.1.12, series = "Forecasts") +
-  autolayer(ts_usmelec.new, series = "Real data") +
+  autolayer(usmelec.new.ts, series = "Real data") +
   scale_x_continuous(limits = c(2010, 2030)) +
   ggtitle("Forecast from ARIMA(0,1,2)(0,1,1)[12] with real data")
 # Real data are really similar to the forecasts. Even when they were different, real data didn't get out of the prediction interval.
