@@ -123,17 +123,25 @@ usmelec.new[, "Year"] <- as.numeric(substr(usmelec.new[, "YYYYMM"], 1, 4))
 usmelec.new[, "Month"] <- as.numeric(
   substr(usmelec.new[, "YYYYMM"], 5, 6)
   )
-usmelec.new <- subset(usmelec.new, Description == "Electricity Net Generation Total, All Sectors", select = c("Year", "Month", "Value"))
+usmelec.new <- subset(
+  usmelec.new, 
+  Description == "Electricity Net Generation Total, All Sectors", 
+  select = c("Year", "Month", "Value")
+  )
 usmelec.new <- subset(usmelec.new, Month != 13)
 usmelec.new[, "Value"] <- as.numeric(
   as.character(usmelec.new[, "Value"])
   )/1000
-ts_usmelec.new <- ts(as.numeric(usmelec.new[, "Value"]), start = c(1973, 1), frequency = 12)
+usmelec.new.ts <- ts(
+  as.numeric(usmelec.new[, "Value"]), 
+  start = c(1973, 1), 
+  frequency = 12
+  )
 
 # get accuracy
-accuracy(fc_usmelec_nnetar, ts_usmelec.new)
+accuracy(fc_usmelec_nnetar, usmelec.new.ts)
 autoplot(fc_usmelec_nnetar) +
-  autolayer(window(ts_usmelec.new, start = c(2013, 7))) +
+  autolayer(window(usmelec.new.ts, start = c(2013, 7))) +
   scale_x_continuous(limits = c(2010, 2019)) +
   scale_y_continuous(limits = c(250, 450))
 # It looked like neural network model was fitted well to the data.
