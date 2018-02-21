@@ -700,6 +700,18 @@ usmelec.new.ts <- ts(
 tail(usmelec.new.ts)
 # final observation was taken in October, 2017 as expected. 
 
+# get accuracy for 4 years of forecast horizon.
+usmelec.new.ts_next4years <- subset(
+  usmelec.new.ts, 
+  start = length(usmelec) + 1,
+  end = length(usmelec) + 12*4
+)
+accuracy(
+  fc_usmelec_arima.0.1.2.0.1.1.12, 
+  usmelec.new.ts_next4years
+  )
+
+# plot the results
 autoplot(fc_usmelec_arima.0.1.2.0.1.1.12, series = "Forecasts") +
   autolayer(usmelec.new.ts, series = "Real data") +
   scale_x_continuous(limits = c(2010, 2030)) +
