@@ -325,3 +325,32 @@ forecast(uschange_var3.v3) %>% autoplot()
 
 ```
 
+## Get prediction interval of Neural Network model using simulations or PI option.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, nnetar_PI}
+
+# simulation of 9 possible future sample paths for the sunspot data. 
+sunspotarea_nnetar <- nnetar(sunspotarea, lambda=0)
+
+sim <- ts(
+  matrix(0, nrow=30L, ncol=9L), 
+  start=end(sunspotarea)[1L]+1L
+  )
+
+for(i in seq(9)){
+  sim[,i] <- simulate(sunspotarea_nnetar, nsim=30L)
+}
+
+autoplot(sunspotarea) + autolayer(sim)
+
+# if PI=TRUE option is used in forecast.nnetar function, prediction interval calculated by simulations can be shown. But it takes more time to do the option.
+forecast(sunspotarea_nnetar, PI=TRUE, h=30) %>%
+  autoplot()
+
+# try using ibmclose data.
+forecast(nnetar(ibmclose), PI=TRUE, h=30) %>%
+  autoplot()
+# even neural network model couldn't yield meaningful forecasts.
+
+```
+
