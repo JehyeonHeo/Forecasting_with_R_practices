@@ -12,6 +12,10 @@ library(hts)
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Question1}
 
 # Australian tourism visitor nights data
+# - used development version of fpp package to use visnight data(2018/2/22). Run below 3 rows of codes without #s to download it.
+# install.packages("devtools")
+# library(devtools)
+# devtools::install_github("robjhyndman/fpp")
 str(visnights)
 head(visnights)
 
