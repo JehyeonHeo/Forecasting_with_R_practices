@@ -150,3 +150,98 @@ autoplot(fc_usmelec_nnetar) +
 
 ```
 
+## Deal with complex seasonality in data example
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, complex_seasonality}
+
+# plot calls data
+p1 <- autoplot(calls) +
+  ylab("Call volume") + 
+  xlab("Weeks") +
+  scale_x_continuous(breaks=seq(1,33,by=2))
+
+p2 <- autoplot(window(calls, end=4)) +
+  ylab("Call volume") + 
+  xlab("Weeks") +
+  scale_x_continuous(minor_breaks = seq(1,4,by=0.2))
+
+gridExtra::grid.arrange(p1,p2)
+
+# 1. STL with multiple seasonal periods(Use mstl function)
+# - used development version of forecast package to use mstl function(2018/2/22). Run below 3 rows of codes without #s to download it.
+# install.packages("devtools")
+# library(devtools)
+# devtools::install_github("robjhyndman/forecast")
+calls %>%
+  mstl() %>%
+  autoplot()
+
+# 2. Dynamic harmonic regression with multiple seasonal periods(Use auto.arima function)
+calls_autoarima <- auto.arima(
+  # model seasonal component using Fourier terms, not using ARIMA model(set seasonal option as FALSE).
+  calls, seasonal=FALSE, lambda=0,
+  # For K in fourier function, use vector instead of a number because calls data are msts(multi-seasonal time series). There are 2 seasonal frequencies in the data that the vector needs to specify 2 numbers of Fourier terms.
+  xreg=fourier(calls, K=c(10,10))
+  )
+
+fc_calls_autoarima <- forecast(
+  calls_autoarima, 
+  xreg=fourier(calls, K=c(10,10), h=2*169)
+  )
+
+autoplot(fc_calls_autoarima, include=5*169) +
+  ylab("Call volume") + 
+  xlab("Weeks")
+
+# 3. TBATS model(Use tbats function)
+# - One drawback of TBATS models is that they can be very slow to estimate, especially with long time series. So I will consider a subset of the calls data to save time.
+calls_tbats <- calls %>%
+  subset(start=length(calls)-2000) %>%
+  tbats()
+
+fc_calls_tbats <- forecast(calls_tbats, h=2*169)
+
+autoplot(fc_calls_tbats, include=5*169) +
+  ylab("Call volume") + xlab("Weeks")
+
+# 4. Dynamic harmonic regression with multiple seasonal periods and covariates(Use auto.arima function)
+# I'll use elecdemand data in this case because I can use several time series in the data as covariates.
+elecdemand %>%
+  as.data.frame %>%
+  ggplot(aes(x=Temperature, y=Demand)) + 
+    geom_point() +
+    xlab("Temperature (degrees Celsius)") +
+    ylab("Demand (GW)")
+
+cooling <- pmax(elecdemand[,"Temperature"], 18)
+
+elecdemand_dreg <- auto.arima(
+  elecdemand[,"Demand"],
+  # To forecast total electricity demand, use 2 time series related with temperature as covariates.
+  xreg = cbind(fourier(elecdemand, c(10,10,0)),
+               heating=elecdemand[,"Temperature"],
+               cooling=cooling)
+  )
+
+# I'll do scenario forecasting. Therefore I'll use a repeat of the last two days of temperatures to generate future possible demand values.
+temps.new <- subset(
+  elecdemand[, c(1:3)],
+  start=NROW(elecdemand)-2*48+1
+  )
+
+cooling.new <- pmax(temps.new, 18)
+
+# forecast temperature using Fourier terms
+fc_elecdemand_dreg <- forecast(
+  elecdemand_dreg, 
+  xreg=cbind(fourier(temps.new, c(10,10,0)),
+             heating=temps.new, 
+             cooling=pmax(cooling.new,18))
+  )
+
+autoplot(fc_elecdemand_dreg, include=14*48)
+checkresiduals(fc_elecdemand_dreg)
+# Although the short-term forecasts look reasonable, this is a very crude model for a complicated process. 
+
+```
+
