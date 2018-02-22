@@ -245,3 +245,83 @@ checkresiduals(fc_elecdemand_dreg)
 
 ```
 
+## Use VAR model for forecasting
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, VAR_model}
+
+# make a VAR model for forecasting US consumption
+VARselect(
+  uschange[, 1:2], lag.max=8, type="const"
+  )[["selection"]]
+# There is a large discrepancy between the VAR(5) selected by the AIC and the VAR(1) selected by the BIC. As a result I'm going to fit a VAR(1) first, as selected by the BIC. And then I'll increase lag order one by one to get a model whose residuals are uncorrelated.
+
+# used consumption and income as variables.
+uschange_var1 <- VAR(uschange[,1:2], p=1, type="const")
+summary(uschange_var1)
+
+# computes the multivariate asymptotic Portmanteau test for serially correlated errors.
+serial.test(
+  uschange_var1, lags.pt=10, type="PT.asymptotic"
+  )
+# p value is more than 0.05. This model can be used.
+
+uschange_var2 <- VAR(uschange[,1:2], p=2, type="const")
+summary(uschange_var2)
+
+serial.test(
+  uschange_var2, lags.pt=10, type="PT.asymptotic"
+  )
+# p value is less than 0.05. Try 1 higher order.
+
+uschange_var3 <- VAR(uschange[,1:2], p=3, type="const")
+summary(uschange_var3)
+
+serial.test(
+  uschange_var3, lags.pt=10, type="PT.asymptotic"
+  )
+# p value is more than 0.05. This model can be used.
+
+# try making model using production variable too.
+VARselect(
+  uschange[, 1:3], lag.max=8, type="const"
+  )[["selection"]]
+# try VAR(1) model first.
+
+uschange_var1.v3 <- VAR(
+  uschange[,1:3], p=1, type="const"
+  )
+summary(uschange_var1.v3)
+
+serial.test(
+  uschange_var1.v3, lags.pt=10, type="PT.asymptotic"
+  )
+# p value is less than 0.05. Try 1 higher order model.
+
+uschange_var2.v3 <- VAR(
+  uschange[,1:3], p=2, type="const"
+  )
+summary(uschange_var2.v3)
+
+serial.test(
+  uschange_var2.v3, lags.pt=10, type="PT.asymptotic"
+  )
+# p value is less than 0.05. Try 1 higher order model.
+
+uschange_var3.v3 <- VAR(
+  uschange[,1:3], p=3, type="const"
+  )
+summary(uschange_var3.v3)
+
+serial.test(
+  uschange_var3.v3, lags.pt=10, type="PT.asymptotic"
+  )
+# p value is more than 0.05. This model can be used.
+
+# forecast using usable models.
+forecast(uschange_var1) %>% autoplot()
+forecast(uschange_var3) %>% autoplot()
+forecast(uschange_var3.v3) %>% autoplot()
+# It looked like VAR(3) model is a little better than VAR(1).
+
+```
+
