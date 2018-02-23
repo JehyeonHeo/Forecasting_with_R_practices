@@ -354,3 +354,138 @@ forecast(nnetar(ibmclose), PI=TRUE, h=30) %>%
 
 ```
 
+## Bootstrapping and Bagging
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bootstrapping_and_Bagging}
+
+# Bootstrap the residuals of debitcards time series in order to simulate future values of the series using a model.
+# bld.mbb.bootstrap function - Box-Cox And Loess-Based Decomposition with Moving Block Bootstrap.
+# generate 10 bootstrapped versions.
+bootseries <- bld.mbb.bootstrap(debitcards, 10) %>%
+  as.data.frame %>% 
+  ts(start=2000, frequency=12)
+
+autoplot(debitcards) +
+  autolayer(bootseries, colour=TRUE) +
+  autolayer(debitcards, colour=FALSE) +
+  ylab("Bootstrapped series") + 
+  guides(colour="none")
+
+# Get prediction intervals from bootstrapped series
+# generate 1000 bootstrapped versions.
+nsim <- 1000L
+sim <- bld.mbb.bootstrap(debitcards, nsim)
+
+# For each of these series, I'm going to fit an ETS model and simulate one sample path from that model. The estimated parameters will be different. And the point forecasts will be different, too.
+h <- 36L
+debitcards.future <- matrix(0, nrow=nsim, ncol=h)
+
+# put each simulation's point forecasts in each row of debitcards.future matrix.
+# It takes lots of time to run below loop.
+for(i in seq(nsim)){
+  debitcards.future[i,] <- simulate(
+    ets(sim[[i]]), nsim=h
+    )
+}
+
+# I can make debitcards.future using map function of purrr package, too.
+debitcards.future <- purrr::map(
+  as.list(bld.mbb.bootstrap(debitcards, 1000L)), 
+  function(x){forecast(ets(x), h=h)$mean}
+  ) %>%
+  # change the class from list to vector.
+  unlist()
+
+# change the class from vector to matrix. I couldn't get 1000 x 24 matrix by directly change the class to matrix from list. Therefore I made the format as vector first and then change it as matrix designating the number of rows and columns.
+dim(debitcards.future) <- c(1000, 24)
+
+# Finally, take the means and quantiles of these simulated sample paths to form point forecasts and prediction intervals.
+# tsp function extract start time, end time and the frequency of data.
+# h.start = first time point of forecast horizon.
+h.start <- tsp(debitcards)[2] + 1/12
+
+# calculate each column's mean, lower limit and upper limit.
+fc_debitcards_sim <- structure(
+  list(
+    mean = ts(
+      colMeans(debitcards.future), 
+      start=h.start, 
+      frequency=12
+      ),
+    lower = ts(
+      apply(debitcards.future, 2, quantile, prob=0.025),
+      start=h.start, 
+      frequency=12
+      ),
+    upper = ts(
+      apply(debitcards.future, 2, quantile, prob=0.975),
+      start=h.start, 
+      frequency=12
+      ),
+    level=95),
+  class="forecast")
+
+# get point forecasts and PI using forecast function.
+fc_debitcards_ets <- forecast(ets(debitcards), h=h)
+
+# plot the results
+autoplot(debitcards) +
+  ggtitle("Monthly retail debit card usage in Iceland") +
+  xlab("Year") + ylab("million ISK") +
+  autolayer(fc_debitcards_sim, series="Simulated") +
+  autolayer(fc_debitcards_ets, series="ETS")
+# Can see that the PI of bootstraped simulations yielded larger interval than the one obtained from an ETS model applied directly to the original data.
+
+# Bagging(Bootstrap AGGregatING)
+# - produce forecasts from each of the additional bootstrapped time series, and average the resulting forecasts. We can get better forecasts than if we simply forecast the original time series directly.
+fc_debitcards_sim.sets <- purrr::map(
+  as.list(bootseries), 
+  function(x){forecast(ets(x))$mean}
+  ) %>%
+  # map function returns a list. Therefore to make it as ts object, transform it to data.frame first.
+    as.data.frame() %>%
+    ts(frequency=12, start=h.start)
+# fc_debitcards_sim : ETS modeling for each 1000 bootstrapped series, generate 1000 sets of point forecasts. And then aggregate the 1000 sets by getting mean, lower and upper limits of the sets.
+# fc_debitcards_ets : ETS modeling from original data only, generate one set of point forecasts.
+# fc_debitcards_ets.mean : ETS modeling for each 10 bootstrapped series, generate 10 sets of point forecasts.
+
+# get aggregated mean forecasts from fc_debitcards_sim.sets. 
+fc_debitcards_sim2 <- structure(
+  list(
+    mean = ts(
+        # The rows of fc_debitcards_sim.sets are time points of forecast horizon. The columns are bootstrapped versions. Therefore get means for each row.
+      rowMeans(fc_debitcards_sim.sets), 
+      start=h.start, 
+      frequency=12
+      )
+    ),
+  class="forecast")
+
+# plot the results.
+autoplot(debitcards) +
+  autolayer(bootseries, colour=TRUE) +
+  autolayer(fc_debitcards_sim.sets, colour=TRUE) +
+  autolayer(debitcards, colour=FALSE) +
+  autolayer(fc_debitcards_sim2$mean, colour=FALSE) +
+  ylab("Bootstrapped series") +
+  guides(colour="none")
+
+# But the whole procedure can be handled with the baggedETS function.
+fc_debitcards_ets <- debitcards %>% 
+  ets %>% 
+  forecast(h=36)
+fc_debitcards_bagged.ets <- debitcards %>% 
+  baggedETS %>% 
+  forecast(h=36)
+
+autoplot(debitcards) +
+  autolayer(fc_debitcards_bagged.ets$mean, 
+            series="BaggedETS") +
+  autolayer(fc_debitcards_ets$mean, series="ETS") +
+  guides(colour=guide_legend(title="Forecasts"))
+# In this case, the forecast difference of the 2 functions is small.
+# By default, 100 bootstrapped series are used. And on average, baggedets gives better forecasts than just applying ets directly. But it is slower because a lot more computation is required.
+# baggedModel function can be used instead. fn option can be designated as ets or auto.arima.
+
+```
+
