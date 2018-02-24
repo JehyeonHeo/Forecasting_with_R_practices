@@ -6,4 +6,69 @@ library(fpp2)
 
 ```
 
+## Forecast combinations examples
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Forecast_combinations}
+
+# It is an example using auscafe data. They have information about monthly expenditure on eating out in Australia, from April 1982 to September 2017. I'm going to get forecasts from the following models: ETS, ARIMA, STL-ETS, NNAR, and TBATS. And we compare the results using the last 5 years (60 months) of observations.
+auscafe.train <- window(auscafe, end=c(2012,9))
+h <- length(auscafe) - length(auscafe.train)
+
+# forecast using several models.
+auscafe_ETS <- forecast(ets(auscafe.train), h=h)
+auscafe_ARIMA <- forecast(
+  auto.arima(auscafe.train, lambda=0, biasadj=TRUE), h=h
+  )
+auscafe_STL <- stlf(
+  auscafe.train, lambda=0, h=h, biasadj=TRUE
+  )
+auscafe_NNAR <- forecast(nnetar(auscafe.train), h=h)
+auscafe_TBATS <- forecast(
+  tbats(auscafe.train, biasadj=TRUE), h=h
+  )
+auscafe_Combination <- (
+  auscafe_ETS$mean + 
+  auscafe_ARIMA$mean + 
+  auscafe_STL$mean + 
+  auscafe_NNAR$mean + 
+  auscafe_TBATS$mean
+  )/5
+
+# plot the result
+autoplot(auscafe) +
+  autolayer(auscafe_ETS$mean, series="ETS") +
+  autolayer(auscafe_ARIMA$mean, series="ARIMA") +
+  autolayer(auscafe_STL$mean, series="STL") +
+  autolayer(auscafe_NNAR$mean, series="NNAR") +
+  autolayer(auscafe_TBATS$mean, series="TBATS") +
+  autolayer(auscafe_Combination, series="Combination") +
+  xlab("Year") + ylab("$ billion") +
+  ggtitle("Australian monthly expenditure on eating out")
+
+# get accuracy for each model
+c(
+  ETS=accuracy(
+    auscafe_ETS, auscafe
+    )["Test set","RMSE"],
+  ARIMA=accuracy(
+    auscafe_ARIMA, auscafe
+    )["Test set","RMSE"],
+  `STL-ETS`=accuracy(
+    auscafe_STL, auscafe
+    )["Test set","RMSE"],
+  NNAR=accuracy(
+    auscafe_NNAR, auscafe
+    )["Test set","RMSE"],
+  TBATS=accuracy(
+    auscafe_TBATS, auscafe
+    )["Test set","RMSE"],
+  Combination=accuracy(
+    auscafe_Combination, auscafe
+    )["Test set","RMSE"]
+  )
+
+# When I get accuracy using RMSE, the forecasts from combinations of models yielded lowest error. TBATS did particularly well with this series, but the combination approach was even better.
+# Combination approach generally improves forecast accuracy.
+
+```
 
