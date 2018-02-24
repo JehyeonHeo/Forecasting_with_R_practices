@@ -64,9 +64,13 @@
 9) Chapter10.rmd
  - 'Forecasting hierarchical or grouped time series'
  
-10) Chapter11.rmd(not solved yet)
+10) Chapter11.rmd
  - 'Advanced forecasting methods'
 
+11) Chapter12.rmd
+ - 'Some practical forecasting issues'
+ - Even if there aren't any exercise in the chapter, there are some examples that are worth practicing. Therefore I'm going to deal with them in here.
+ 
 ## Acknowledgments and other useful resources
 
 - Forecasting: Principles and Practice online [textbook]( https://otexts.org/fpp2/)
