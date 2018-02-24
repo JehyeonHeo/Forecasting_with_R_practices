@@ -1,1 +1,9 @@
 # Chapter 12
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Load_packages}
+
+library(fpp2)
+
+```
+
+
