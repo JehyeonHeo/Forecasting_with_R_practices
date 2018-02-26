@@ -72,3 +72,52 @@ c(
 
 ```
 
+
+## Dealing with weekly data example
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Weekly_data}
+
+# The simplest approach is to use an STL decomposition to the seasonal component along with a non-seasonal method applied to the seasonally adjusted component of data.
+gasoline %>% stlf() %>% autoplot()
+
+# An alternative approach is to use a dynamic harmonic regression model. Example using gasoline data again.
+gasoline_dreg.best <- list(aicc=Inf)
+
+for(K in seq(26)){
+  gasoline_dreg <- auto.arima(
+    #substitute seasonal component with Fourier terms.
+    gasoline, 
+    xreg=fourier(gasoline, K=K), 
+    seasonal=FALSE
+    )
+  
+  if(gasoline_dreg$aicc < gasoline_dreg.best$aicc)
+  {
+    gasoline_dreg.best <- gasoline_dreg
+    gasoline_K.best <- K
+  }
+}
+
+# forecast the next 2 years of data. If I assume that 1 year is about 52 weeks, forecast horizon(h) is 104.
+fc_gasoline_dreg.best <- forecast(
+  gasoline_dreg.best, 
+  xreg=fourier(gasoline, K=gasoline_K.best, h=104)
+  )
+
+autoplot(fc_gasoline_dreg.best)
+
+# A third approach is the TBATS model. This was the subject of Question 11.2.
+gasoline_tbats <- tbats(gasoline)
+
+checkresiduals(gasoline_tbats)
+# The residuals aren't like white noise.
+
+fc_gasoline_tbats <- forecast(gasoline_tbats)
+autoplot(fc_gasoline_tbats)
+# The forecasts from above 3 methods are similar to each other.
+# At the question 11.2, I thought that the dynamic harmonic regression model will be best for the data because of unlinearity in trend.
+
+# If there's an unlinearity of trend or irregular seasonality in the data, dynamic regression model with dummy variable(s) will be the only choice. This fact can be applied to daily or sub-daily data, too.
+
+```
+
