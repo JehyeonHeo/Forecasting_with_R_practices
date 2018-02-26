@@ -121,3 +121,19 @@ autoplot(fc_gasoline_tbats)
 
 ```
 
+
+## Dealing with time series of small counts
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Ts_of_small_counts}
+
+# The forecast of 3.64 customers can matters even though the forecast of 100.368 customers rarely matters.
+
+# Croston's method.
+# Even if this method does not properly deal with the count nature of the data, but it is used so often, that it is worth knowing about it.
+# qi is the i-th non-zero quantity, and ai is the time between qi-1 and qi. q is often called the "demand" and a the "inter-arrival time".
+#  Let j be the time for the last observed positive observation. Then, the h-step ahead forecast for the demand at time T+h, is given by the ratio q(j+1|j) / a(j+1|j). One-step forecast is calculated by using exponential smoothing with alpha.
+# croston() function's default alpha value is 0.1.
+productC %>% croston() %>% autoplot()
+
+```
+
