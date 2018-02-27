@@ -137,3 +137,49 @@ productC %>% croston() %>% autoplot()
 
 ```
 
+## Examples of how to ensure forecasts stay within limits
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Ensure_forecasts_stay_within_limits}
+
+# To impose a positivity constraint, simply work on the log scale. Simply set the Box-Cox parameter lambda as 0.
+eggs %>%
+  ets(model="AAN", damped=FALSE, lambda=0) %>%
+  forecast(h=50, biasadj=TRUE) %>%
+  autoplot()
+
+# To make forecasts constrained to an interval, transform the data using a scaled logit transform which maps (lower limit, upper limit) to the whole real line:
+# y = log((x-a)/(b-x)), where a and b are lower and upper limits, x is on the original scale, and y is the transformed data.
+# To reverse the transformation, I need to use 
+# x = (b-a)e^y/(1+e^y)+a
+# eggs data example
+# set bounds
+a <- 50
+b <- 400
+
+# Transform data and fit model
+eggs_ets.aan.constrained <- log((eggs-a)/(b-eggs)) %>%
+  ets(model="AAN", damped=FALSE)
+fc_eggs_ets.aan.constrained <- forecast(
+  eggs_ets.aan.constrained, h=50
+  )
+
+# Back-transform forecasts
+fc_eggs_ets.aan.constrained$mean <- 
+  (b-a)*exp(fc_eggs_ets.aan.constrained$mean)/
+  (1+exp(fc_eggs_ets.aan.constrained$mean)) + a
+fc_eggs_ets.aan.constrained$lower <- 
+  (b-a)*exp(fc_eggs_ets.aan.constrained$lower)/
+  (1+exp(fc_eggs_ets.aan.constrained$lower)) + a
+fc_eggs_ets.aan.constrained$upper <- 
+  (b-a)*exp(fc_eggs_ets.aan.constrained$upper)/
+  (1+exp(fc_eggs_ets.aan.constrained$upper)) + a
+fc_eggs_ets.aan.constrained$x <- eggs
+
+# Plot result on original scale
+autoplot(fc_eggs_ets.aan.constrained)
+# As a result of this artificial (and unrealistic) constraint, the forecast distributions have become extremely skewed.
+# No bias-adjustment has been used here, so the forecasts are the medians of the future distributions. 
+# The prediction intervals show 80% and 95% percentile error ranges when the forecasts are constrained.
+
+```
+
