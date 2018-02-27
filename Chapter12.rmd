@@ -183,3 +183,44 @@ autoplot(fc_eggs_ets.aan.constrained)
 
 ```
 
+
+## Prediction intervals for aggregates
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Forecast_aggregate_of_time_periods}
+
+# For example: You may have daily data, fit a model using the data, and want to forecast the total for the next week(need to aggregate 7 days of forecasts).
+# If the point forecasts are means, then adding them up will give a good estimate of the total. 
+
+# A general solution is to use simulations.
+# An example using ETS models applied to Australian monthly gas production data.
+# First fit a model to the data
+gas_ets <- ets(gas/1000)
+
+# Forecast six months ahead
+fc_gas_ets <- forecast(gas_ets, h=6)
+
+# Simulate 10000 future sample paths
+nsim <- 10000
+h <- 6 
+sim <- numeric(nsim)
+
+for(i in seq_len(nsim)){
+  # for each sample path, add 6 months' forecasts.
+  sim[i] <- sum(simulate(gas_ets, future=TRUE, nsim=h))
+}
+
+# get final aggregated forecast.
+gas_ets.sim.meanagg <- mean(sim)
+
+sum(fc_gas_ets$mean[1:6])
+gas_ets.sim.meanagg
+# The results from above 2 methods are similar to each other.
+
+# get prediction intervals.
+#80% interval:
+quantile(sim, prob=c(0.1, 0.9))
+#95% interval:
+quantile(sim, prob=c(0.025, 0.975))
+
+```
+
