@@ -224,3 +224,42 @@ quantile(sim, prob=c(0.025, 0.975))
 
 ```
 
+## Backcasting
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Backcasting}
+
+# Backcast = forecast in reverse time
+# Function to reverse time
+reverse_ts <- function(y)
+{
+  # reverse the data setting the start time same.
+  ts(rev(y), start=tsp(y)[1L], frequency=frequency(y))
+}
+
+# Function to reverse a forecast(object)
+reverse_forecast <- function(object){
+  # already forecasted with reversed time series.
+  # This function reverses the forecast parts to the past of the time series. And also reverses the reversed time series to the original.
+  h <- length(object$mean)
+  f <- frequency(object$mean)
+  object$x <- reverse_ts(object$x)
+  object$mean <- ts(rev(object$mean), 
+                    end=tsp(object$x)[1L]-1/f,
+                    frequency=f)
+  object$lower <- object$lower[h:1L,]
+  object$upper <- object$upper[h:1L,]
+  return(object)
+}
+
+# Backcast example to quarterly retail trade in the Euro area data.
+euretail %>%
+  reverse_ts() %>%
+  auto.arima() %>% 
+  forecast() %>%
+  reverse_forecast() -> bc_euretail
+
+autoplot(bc_euretail) + 
+  ggtitle(paste("Backcasts from", bc_euretail$method))
+
+```
+
