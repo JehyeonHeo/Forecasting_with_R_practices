@@ -263,3 +263,63 @@ autoplot(bc_euretail) +
 
 ```
 
+
+## How to decide the number of Fourier pairs for harmonic regression fastly.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Foreach_with_doParallel}
+
+# I can do parallel computation using %dopar% binary operator in foreach package with parallel backend in doParallel package. I can get result far faster than when I used loop.
+# If I use %do% instead of %dopar%, I can't use parallel computation even if I don't need to designate '.packages' option in foreach function. '.packages' option specifies the required R package to be loaded to use the function that I want to use repeatedly.
+# https://www.r-statistics.com/tag/r-parallel-computation/
+# This R version can't use doSMP package. Therefore I chose to use foreach and doParallel packages.
+library(foreach)
+library(doParallel)
+workers <- makeCluster(4) # My computer has 4 cores
+registerDoParallel(workers)
+
+aiccs <- foreach(i=1:26, .packages = "fpp2") %dopar%     auto.arima(
+  gasoline, 
+  xreg=fourier(gasoline, K=i), 
+  seasonal=FALSE
+  )$aicc
+# 'worker initialization failed' error can appear. I don't why when and why the error occurs. But when I turned off RStudio and reopened, all codes in this chun ran without any problem.
+# If I put models in aiccs, I can access to each model by using 'aiccs[[i]]$blahblah' code.
+
+# measure how much time is needed to get AICc for 26 different Fourier pairs cases.
+system.time(
+  aiccs <- foreach(
+    i=1:26, .packages = "fpp2"
+    ) %dopar% 
+      auto.arima(
+        gasoline, 
+        xreg=fourier(gasoline, K=i), 
+        seasonal=FALSE
+        )$aicc
+  )
+# user: 0.03, system: 0.02, elapsed: 182.05
+# It took about just 3 minutes to run the codes. When I used loop, it took more than 20 minutes.
+# when I used 8 cores, the results were user: 0.08, system: 0.02, elapsed: 138.05. Faster result.
+# explanations about user, system and elapsed:
+# https://stackoverflow.com/questions/5688949/what-are-user-and-system-times-measuring-in-r-system-timeexp-output
+
+# foreach function returns list by default. Need to use unlist function to get minimum AICc value and its index(which equals the number of Fourier pairs).
+aicc.min <- min(unlist(aiccs))
+K_aicc.min <- which(unlist(aiccs) == aicc.min)
+
+# get best fitted model using the minimum AICc generating number of Fourier terms.
+gasoline_dreg.best <- auto.arima(
+  gasoline, 
+  xreg=fourier(gasoline, K=K_aicc.min),
+  seasonal=FALSE
+)
+
+# forecast using the best model.
+fc_gasoline_dreg.best <- forecast(
+  gasoline_dreg.best, 
+  xreg=fourier(gasoline, K=K_aicc.min, h=104)
+  )
+
+autoplot(fc_gasoline_dreg.best)
+
+```
+
