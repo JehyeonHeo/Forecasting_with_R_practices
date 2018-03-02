@@ -323,3 +323,59 @@ autoplot(fc_gasoline_dreg.best)
 
 ```
 
+## Forecasting on training and test sets
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Forecasting_on_train_and_test_sets}
+
+# Typically, we compute one-step forecasts on the training data (the "fitted values") and multi-step forecasts on the test data.
+
+# Multi-step forecasting on training data
+# use fitted function's h argument. It allow for h-step "fitted values" on the training set.
+# An example using auscafe data.
+auscafe.train <- subset(
+  auscafe, end=length(auscafe)-61
+  )
+auscafe.test <- subset(
+  auscafe, start=length(auscafe)-60
+  )
+
+auscafe_arima.2.1.1.0.1.2.12 <- Arima(
+  auscafe.train, 
+  order=c(2,1,1), seasonal=c(0,1,2), 
+  lambda=0
+  )
+
+# typical one-step forecasts on training set('fitted values') and multi-step forecasts on test set.
+fc_auscafe_arima.2.1.1.0.1.2.12 <- forecast(
+  auscafe_arima.2.1.1.0.1.2.12, h = 60
+)
+
+auscafe.train %>% 
+  forecast(h=60) %>% 
+  autoplot() + 
+    autolayer(auscafe.test) +
+    autolayer(auscafe_arima.2.1.1.0.1.2.12$fitted)
+
+# 12-step forecasts on training data.
+autoplot(auscafe.train, series="Training data") +
+  autolayer(
+    fitted(auscafe_arima.2.1.1.0.1.2.12, h=12),
+    series="12-step fitted values"
+    )
+
+# One-step forecasting on test data
+# In the above example, the forecast errors will be for 1-step, 2-steps, ., 60-steps ahead. 
+# The forecast variance usually increases with the forecast horizon.
+# So if I simply average the absolute or squared errors from the test set, I'm combining results with different variances.
+
+# To solve this issue, obtain 1-step errors on the test data. 
+# This can be easily done by using model argument in model-making functions.
+# Just use training data to estimate parameters, and then apply the estimated model to test data. 
+# The fitted values are one-step forecasting on test set even if they are looked like training set's fitted values.
+auscafe.test_arima.2.1.1.0.1.2.12 <- Arima(
+  auscafe.test, model=auscafe_arima.2.1.1.0.1.2.12
+  )
+accuracy(auscafe.test_arima.2.1.1.0.1.2.12)
+
+```
+
