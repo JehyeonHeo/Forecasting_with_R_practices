@@ -12,8 +12,11 @@ daily20 <- head(elecdaily,20)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Question1}
 
-# I need to make elecdaily because existing data is elecdemand and it has half-hourly electricity demand for Victoria, Australia.
-# Aggregate demand by sum and workday and temperature by mean. Set nfrequency as 365 to aggregate data for each day.
+# I needed to make elecdaily data because there weren't elecdaily data when I solved this question at the first time. 
+# I could get only elecdemand data, which have half-hourly electricity demand data for Victoria, Australia.
+# Even if I could get elecdaily data from the development version in github(https://github.com/robjhyndman/forecast), I left the part of codes for making elecdaily data.
+
+# Aggregate demand column by sum and workday and temperature columns by mean. Set nfrequency as 365 to aggregate data for each day.
 elecdaily <- ts.union(
   aggregate(elecdemand[, "Demand"], nfrequency = 365, FUN = sum),
   aggregate(elecdemand[, !colnames(elecdemand) %in% c("Demand")], nfrequency = 365, FUN = mean)
@@ -21,7 +24,7 @@ elecdaily <- ts.union(
 # Need to change the names of columns after aggregating.
 colnames(elecdaily) <- colnames(elecdemand)
 
-# It will be easier to aggregate if I know the index of the want-to-remove column
+# It will be easier to aggregate if I know the index of the columns that I want to remove.
 #elecdemand[, -1]
 #elecdemand[, -c(2,3)]
 
@@ -37,7 +40,7 @@ tslm_Dem_Temp
 
 # There is a positive relationship between the two variables. It looked like it happened because of air conditioner and fan. It's likely that as temperature increased, people wanted to run them and it increased the demand of electricity
 
-# A scatter plot of Demand against Temperature is shown below with the estimated regression line. This graph shows the positive relation a lot more clearly
+# A scatter plot of Demand against Temperature is shown below with the estimated regression line. This graph shows the positive relationship a lot more clearly
 daily20 %>%
   as.data.frame() %>%
   ggplot(aes(x=Temperature, y=Demand)) +
@@ -50,11 +53,11 @@ daily20 %>%
 checkresiduals(tslm_Dem_Temp$residuals)
 # I think that this model is adequate because residuals aren't correlated with each other. But there was an outlier.
 
-# c. Use the model to forecast the electricity demand that you would expect for the next day if the maximum temperature was 15 and compare it with the forecast if the with maximum temperature was 35. Do you believe these forecasts?
+# c. Use the model to forecast the electricity demand that you would expect for the next day if the maximum temperature was 15 and compare it with the forecast if the maximum temperature was 35. Do you believe these forecasts?
 fc_Dem_Temp <- forecast(tslm_Dem_Temp, 
   newdata=data.frame(Temperature=c(15,35)))
 fc_Dem_Temp
-# I believe these forecasts because the temperature values were near the range of temperatures in the data
+# I think that the model forecasted rightly because the forecasted temperature values were near to the range of temperatures in the data
 
 # d. Give prediction intervals for your forecasts. The following R code will get you started:
 # 80% intervals
@@ -72,7 +75,7 @@ elecdaily %>%
     xlab("Temperature") +
     geom_point() +
     geom_smooth(method="lm", se=FALSE)
-# The result plot shows that the model was made with few data points. It could've explained the data of the first 20 days well, but it wasn't right model for total data points
+# The result plot indicates that the model was made by few data points. It could've explained the data of the first 20 days well, but it wasn't right model for total data points
 
 ```
 
@@ -84,7 +87,7 @@ elecdaily %>%
 # a. Plot the winning time against the year. Describe the main features of the plot.
 autoplot(mens400)
 # Feature1. Winning times in Olympic men's 400m track final had the trend of decreasing as time went on.
-# Feature2. Missing values occured.
+# Feature2. There are missing values.
 
 # b. Fit a regression line to the data. Obviously the winning times have been decreasing, but at what average rate per year?
 # Extract time part from mens400 time series to do linear modeling.
@@ -98,7 +101,7 @@ autoplot(mens400) +
               intercept = tslm_mens400$coefficients[1],
               colour = "red")
 
-# Get time decreasing rate
+# Get the winning time decreasing rate
 tslm_mens400$coefficients[2]
 # The winning times have been decreasing at average rate of 0.06457 second per year.
 
@@ -109,11 +112,13 @@ cbind(Time = time_mens400,
   ggplot(aes(x = Time, y = Residuals)) +
     geom_point() +
     ylab("Residuals of Regression Line(Unit:s)")
-# The residual plot shows that the regression model generally fitted well to the data. I can check it using checkresiduals function, too.
+# The residual plot shows that the regression model generally fitted the data well. I can check it using checkresiduals function, too.
 checkresiduals(tslm_mens400)
 
 # d. Predict the winning time for the men's 400 meters final in the 2020 Olympics. Give a prediction interval for your forecasts. What assumptions have you made in these calculations?
-# I used lm function here to get prediction interval through forecast function. Forecast function can't calculate prediction interval when there is any missing values in the data.
+# I made linear model with na.action argument as na.exclude to exclude missing values.
+# And then I used the linear model in forecast function to get prediction interval.
+# Forecast function can't calculate prediction interval when there is any missing values in the data that I excluded them fitting linear model.
 lm_mens400 <- lm(
   mens400 ~ time_mens400, 
   data = mens400,
@@ -134,7 +139,7 @@ fc_mens400$lower
 
 # 80% interval is from 40.45 to 43.63
 # 95% interval is from 39.55 to 44.53
-# But we need to consider that they were calculated from the assumption that the residuals from model were normally distributed. But we saw from the result of checkresiduals function that it isn't true.
+# But we need to consider that they were calculated from the assumption that the model's residuals were normally distributed. But we saw from the result of checkresiduals function that it isn't true.
 
 ```
 
@@ -164,10 +169,10 @@ easter(ausbeer)
 # a. Produce a time plot of the data and describe the patterns in the graph. Identify any unusual or unexpected fluctuations in the time series.
 autoplot(fancy)
 head(fancy, 50)
-# Sales generally increased from January to December. Sales increased dramatically in December. Sales in December increased as time went on, but in 1991, there was decresing. In most years, there were also unexpected increases in March but the size of increases were a lot smaller than what happened in December.
+# Sales generally increased from January to December. Sales increased dramatically in Decembers. Sales in Decembers increased as time went on, but in 1991, sales decreased. In most years, there was also unexpected increase every March, but the increases were a lot smaller than the increases in Decembers.
 
 # b. Explain why it is necessary to take logarithms of these data before fitting a model.
-# The size of the seasonal variations should be almost same across the whole series to fit a model. Fancy data shows that seasonal variations increased exponentially. Therefore it is necessary to take logarithms of the data.
+# The size of the seasonal variations should be almost same across the whole series to be fitted well to a model. Fancy data shows that seasonal variations increased exponentially. Therefore it is necessary to take logarithms of the data.
 
 # c. Use R to fit a regression model to the logarithms of these sales data with a linear trend, seasonal dummies and a "surfing festival" dummy variable.
 # I'll do Box-Cox transformation for fancy data
@@ -185,17 +190,16 @@ for(i in 1:length(Time)){
     surfing_festival[i] <- 0
   }
 }
-# If I'd made surfing_festival as a list, I should've needed to use unlist function to make it as atomic vector, not nested list. tslm function can get vector or factor but it cannot get nested list.
+# If I had made surfing_festival as a list, I should've needed to use unlist function to make it as atomic vector, not nested list. tslm function can get vector or factor type data, but it cannot get nested list.
 
 tslm_BoxCox_fancy <- tslm(
   fancy ~ trend + season + surfing_festival,
   lambda = lambda
   )
-# But when I added surfing_festival dummy variable, the interval of the residuals increased.
 
 # d. Plot the residuals against time and against the fitted values. Do these plots reveal any problems with the model?
 autoplot(tslm_BoxCox_fancy$residuals)
-# Residuals show pattern against time. It means that there is correlation between residuals and time.
+# The residuals have pattern against time. It means that there is correlation between residuals and time.
 
 cbind(Residuals = tslm_BoxCox_fancy$residuals,
       Fitted_values = tslm_BoxCox_fancy$fitted.values) %>%
@@ -203,7 +207,7 @@ cbind(Residuals = tslm_BoxCox_fancy$residuals,
   ggplot(aes(x = Fitted_values,
              y = Residuals)) +
     geom_point()
-# The size of residuals changed as we move along the x-axis. It means that there may be heteroscedacity in the errors which means that the variance of the residuals may not be constant. Maybe better transformation of the data is required.
+# The size of the residuals changed as we move along the x-axis. It means that there may be heteroscedacity in the errors or that the variance of the residuals may not be constant. Maybe better transformation of the data is required.
 
 # e. Do boxplots of the residuals for each month. Does this reveal any problems with the model?
 cbind.data.frame(
@@ -217,24 +221,24 @@ cbind.data.frame(
   ggplot(aes(x = Month,
              y = Residuals)) +
     geom_boxplot()
-# If vectors are combined by cbind function, the type of the result is matrix, which should hold one type of data. If I need to make the columns to have different data types, I need to use cbind.data.frame function instead. Instead, if I still use cbind function, I need to use as.numeric function in mapping of ggplot.
+# If vectors are combined by cbind function, the class of the result is matrix, which should hold one type of data. If I want to make the columns to have different data types, I need to use cbind.data.frame function instead. Instead, if I still want to use cbind function, I need to use as.numeric function in mapping of ggplot.
 # If the mapping of boxplot is (factor x factor), it would be difficult to see any box because boxplot function can't aggregate factor type data. The result would be looked like a scatter plot.
 
-# To see the change of the residuals for each month, I use ggsubseriesplot function.
+# To see the change of the residuals for each month, I used ggsubseriesplot function.
 ggsubseriesplot(tslm_BoxCox_fancy$residuals)
 
-# The distribution of the residuals were unsymetrical for some months. And for some month, the median of the residuals weren't 0(mean should be 0 for all months because getting the minimum SSE means getting mean). Residuals with such properties can't have normal distribution, which will make it difficult to get prediction interval.
+# The distribution of the residuals was unsymetrical for some months. And for some months, the median of the residuals wasn't 0(residuals' mean should be 0 for all months because getting the minimum SSE means getting mean). Residuals with such properties can't have normal distribution, which will make it difficult to get prediction interval.
 
 # f. What do the values of the coefficients tell you about each variable?
 tslm_BoxCox_fancy$coefficients
-# The model has positive trend. It means that as time went on, the sales increased generally. And all seasonal variables are positive. It means that the sales was minimum on January and the sales of the other months were greater than January for most of years. Finally, surfing_festival variable got 0.51 which isn't small compared to the others. It means that there were increased sales in March when surfing festival happened.
+# The model has positive trend. It means that as time goes on, the sales increase generally. And all seasonal variables are positive. It means that the sales amount was minimum on January and the sales of the other months were greater than January for most of years. Finally, surfing_festival variable got 0.51 and it isn't small compared to the others. It means that there were increased sales in Marchs when surfing festival happened.
 
 # g. What does the Breusch-Godfrey test tell you about your model?
 checkresiduals(tslm_BoxCox_fancy)
 # The p value of the test is less than 0.05. It means that the residuals can be distinguished from white noise. The residuals can be correlated with each other.
 
 # h. Regardless of your answers to the above questions, use your regression model to predict the monthly sales for 1994, 1995, and 1996. Produce prediction intervals for each of your forecasts.
-# make surfing festival data for the months of 1994 to 1996.
+# make surfing festival data for the months of 1994 through 1996.
 future_fancy <- rep(0, 36)
 for(i in 1:36){
   if(i %% 12 == 3){
@@ -292,7 +296,7 @@ fc_tslm_fancy$lower
 # a. Fit a harmonic regression with trend to the data. Experiment with changing the number Fourier terms. Plot the observed gasoline and fitted values and comment on what you see.
 str(gasoline)
 head(gasoline)
-# It is weekly data and it would be useful to make model with harmonic regression.
+# They are weekly data and it would be useful to make model with harmonic regression.
 
 # extract gasoline data up to the end of 2004 and plot it
 gasoline_until_2004 <- window(gasoline, end = 2005)
@@ -334,7 +338,7 @@ autoplot(gasoline_until_2004) +
   autolayer(tslm_ft20_gasoline_until_2004$fitted.values, series = "20") +
   guides(colour = guide_legend(title = "Fourier Transform pairs")) +
   scale_color_discrete(breaks = c(1, 2, 3, 5, 10, 20))
-# as more pairs used, more the fitted line looked more like the original data. But the fitted lines didn't follow the trend well.
+# as more number of Fourier pairs used, the fitted line looks more like the original data. But the fitted lines didn't follow the trend well.
 
 # b. Select the appropriate number of Fourier terms to include by minimizing the AICc or CV value.
 for(i in c(1, 2, 3, 5, 10, 20)){
@@ -375,8 +379,8 @@ for(num in 1:26){
   )[["CV"]]
   print(CV_K)
   
-  # If both of the minimum values are found, the loop don't need to run anymore. Therefore print the result number of pairs and break the loop.
-  # If num = 1, don't run below codes and move to num = 2. With just the result of num = 1, I cannot know whether the AICc or CV is minimum.
+  # If the minimum AICc and CV values are found, the loop don't need to run anymore. Therefore print the result number of pairs and break the loop.
+  # If num = 1, don't run below codes and move to num = 2. With just the result of num = 1, I cannot know whether the AICc and CV values are minimum.
   if(num != 1){
     if(AICc_K >= min_AICc & CV_K >= min_CV){
       writeLines(
@@ -426,7 +430,7 @@ fc_gasoline_2005 <- forecast(
     )
   )
 
-#where fit is the fitted model using tslm, K is the number of Fourier terms used in creating fit, and h is the forecast horizon required. Forecast the next year of data.
+# where tslm_ft7_gasoline_until_2004 is the fitted model using tslm, K is the number of Fourier terms used in creating fit, and h is the forecast horizon required. Got the next year's forecasts.
 
 # e. Plot the forecasts along with the actual data for 2005. What do you find?
 autoplot(fc_gasoline_2005) +
@@ -451,7 +455,7 @@ autoplot(fc_gasoline_2005) +
 autoplot(huron)
 str(huron)
 head(huron)
-# There are lots of fluctuations that show some cyclic behaviour. And upto about 1930 there were downward trend, but after that, the trend disappeared.
+# There are lots of fluctuations that show some cyclic behaviour. And up to about the year 1930 there were downward trend, but after that the trend disappeared.
 
 # b. Fit a linear regression and compare this to a piecewise linear trend model with a knot at 1915.
 h <- 8
@@ -502,7 +506,7 @@ autoplot(huron) +
   xlab("Year") +  ylab("Water level") +
   ggtitle("Lake Huron water level change") +
   guides(colour=guide_legend(title=" "))
-# It looked like spline model didn't catch the trend well. Linear model and log transformed linear model couldn't reflect the trend change around 1915.
+# It looked like spline model didn't catch the trend well. Linear model and log transformed linear model couldn't reflect the trend change around the year 1915.
 
 # c. Generate forecasts from these two models for the period upto 1980 and comment on these.
 autoplot(huron) +
@@ -525,8 +529,8 @@ autoplot(huron) +
   theme(plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5))
 
-# Linear regression model shows that the point forecasts and the prediction intervals decrease as time goes on. It didn't reflect the trend change around 1915.
-# Piecewise linear regression model shows that the point forecasts and the prediction intervals are almost same even if time goes on. It reflected the trend change.
+# Linear regression model shows that the point forecasts and the upper and the lower bounds of prediction intervals decrease as time goes on. It didn't reflect the trend change around the year 1915.
+# Piecewise linear regression model shows that the point forecasts and the prediction intervals are almost same over time. It reflected the trend change.
 
 ```
 
