@@ -73,7 +73,7 @@ fc_retail_biasadj <- rwf(myts,
                          biasadj = TRUE)
 
 autoplot(myts) +
-  autolayer(fc_retail, series = "Simple Back Transform") +
+  autolayer(fc_retail, series = "Drift method with Box-Cox Transformation") +
   autolayer(fc_retail_biasadj$mean, series = "Bias Adjusted") +
   guides(colour = guide_legend(title = "Forecast"))
 # It would be better to choose bias adjusted Box-Cox Transformation with lambda = 0.128
@@ -114,7 +114,7 @@ autoplot(res)
 
 checkresiduals(fc)
 
-# When just see the result of ACF, it looked like the residuals aren't white noise because of 4-lagged value. And Ljung-Box test shows that it is statistically signigicant. Therefore they aren't white noise. Also they aren't normally distributed.
+# The ACF plot result indicates that the residuals aren't white noise because of significant spike at lag 4. And Ljung-Box test shows that it is statistically significant. Therefore they aren't white noise. Also they aren't normally distributed.
 
 ```
 
@@ -131,7 +131,7 @@ naive_www <- naive(WWWusage)
 autoplot(naive_www)
 checkresiduals(naive_www)
 
-# When just see the result of ACF, it looked like the residuals aren't white noise because of out of bound values. And Ljung-Box test shows that they are statistically signigicant for both of methods. Therefore they aren't white noise. And the distribution of residuals aren't normal, too.
+# The ACF plot indicates that the residuals aren't white noise because of existence of significant spikes. And Ljung-Box test shows that they are statistically significant for both of methods. Therefore they aren't white noise. And the distribution of residuals isn't normal, too.
 # If I need to choose between above 2 methods, I will choose naive method because there isn't any particular seasonal pattern in the data and the Q values of Ljung-Box test were same for both methods.
 
 snaive_bricksq <- snaive(bricksq)
@@ -161,11 +161,11 @@ answer
 
  - b. Good forecast methods don't need to have small residuals. But their residuals should be uncorrelated and have zero mean.
  
- - c. The best measure of forecast accuracy is different case by case.
+ - c. The best measure of forecast accuracy is different on a case by case basis.
  
  - d. More complicated forecast method doesn't guarantee better forecast.
  
- - e. When choosing the model, whether the residuals have zero mean and they are uncorrelated with each other is also considered. Simply choosing best accuracy model isn't good.
+ - e. When choosing a model, whether the residuals have zero mean and whether they are uncorrelated with each other should also be considered. Simply choosing best accuracy model isn't good.
 
 8. For your retail time series (from Exercise 3 in Section 2.10):
 
@@ -197,8 +197,8 @@ checkresiduals(snaive_myts_train)
 
 # f. How sensitive are the accuracy measures to the training/test split?
 
-# Compared between the ratios of the test set error to the train set error, it looked like Mean Error is highly sensitive, RMSE, MAE, MPE, MASE are sensitive and MAPE and ACF1 aren't much sensitive.
-# I don't know whether this method is what the author wanted to solve this question.
+# I thought of sensitivity as the ratio of the test set error to the train set error. When I used the definition, it looked like Mean Error is highly sensitive, RMSE, MAE, MPE, MASE are sensitive and MAPE and ACF1 aren't much sensitive.
+# I don't know whether this method is what the author wanted to solve this question about sensitivity.
 
 ```
 
@@ -247,7 +247,7 @@ dj_x <- c(1, 78)
 dj_y <- c(dowjones[1], dowjones[78])
 lm_dj <- lm(dj_y ~ dj_x)
 
-# It looked like ggplot2 package isn't compatible to graphics package that autoplot function, made of ggplot2 can't be worked with graphic function like abline, etc. When I tried it, 'plot.new has not been called yet' error appeared.
+# It looked like ggplot2 package isn't compatible to graphics package that autoplot function, made of ggplot2 can't be worked with graphics function like abline, etc. When I tried it, 'plot.new has not been called yet' error appeared.
 autoplot(drift_dj) +
   geom_abline(intercept = lm_dj$coefficients[1],
               slope = lm_dj$coefficients[2],
@@ -343,13 +343,14 @@ autoplot(subset(e_snaive_ibm_CV^2, start = 301), series = "snaive method") +
   theme(plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5)) +
   ylab(expression(paste("erro", r^{2})))
-# If I choose to use tsCV function, I would've selected naive method because it yields smallest error.
+# Based on the returned results of tsCV function, I would've selected naive method because it yielded smallest error.
   
 # d. Check the residuals of your preferred method. Do they resemble white noise?
 checkresiduals(naive_ibm)
 checkresiduals(drift_ibm)
 
-# No. Even I checked the residuals of naive method because the error values were similar to result of drift method, residuals weren't like white noise for both cases
+# No. Even when I checked the residuals of naive method because the error values were similar to result of the drift method, they weren't like white noise, too.
+
 ```
 
 
@@ -395,6 +396,6 @@ accuracy(mean_hsales, hsales_test)
 
 # d. Check the residuals of your preferred method. Do they resemble white noise?
 checkresiduals(snaive_hsales) 
-# But residuals don't resemble white noise
+# But the residuals don't resemble white noise
 
 ```
