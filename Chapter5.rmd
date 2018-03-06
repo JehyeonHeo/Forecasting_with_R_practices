@@ -522,14 +522,14 @@ fc_tslm_spline_huron <- forecast(
 
 # plot the results
 autoplot(huron) +
-  forecast::autolayer(fitted(tslm_huron), series = "Linear") +
-  forecast::autolayer(fitted(tslm_log_huron), series="Logarithm") +
-  forecast::autolayer(fitted(tslm_pw_huron), series = "Piecewise") +
-  forecast::autolayer(fitted(tslm_spline_huron), series = "Cubic Spline") +
-  forecast::autolayer(fc_tslm_pw_huron, series="Piecewise") +
-  forecast::autolayer(fc_tslm_huron$mean, series = "Linear") +
-  forecast::autolayer(fc_tslm_log_huron$mean, series="Logarithm") +
-  forecast::autolayer(fc_tslm_spline_huron$mean, series="Cubic Spline") +
+  autolayer(fitted(tslm_huron), series = "Linear") +
+  autolayer(fitted(tslm_log_huron), series="Logarithm") +
+  autolayer(fitted(tslm_pw_huron), series = "Piecewise") +
+  autolayer(fitted(tslm_spline_huron), series = "Cubic Spline") +
+  autolayer(fc_tslm_pw_huron, series="Piecewise") +
+  autolayer(fc_tslm_huron$mean, series = "Linear") +
+  autolayer(fc_tslm_log_huron$mean, series="Logarithm") +
+  autolayer(fc_tslm_spline_huron$mean, series="Cubic Spline") +
   xlab("Year") +  ylab("Water level") +
   ggtitle("Lake Huron water level change") +
   guides(colour=guide_legend(title=" "))
@@ -537,8 +537,8 @@ autoplot(huron) +
 
 # c. Generate forecasts from these two models for the period upto 1980 and comment on these.
 autoplot(huron) +
-  forecast::autolayer(fitted(tslm_huron), series = "Linear") +
-  forecast::autolayer(fc_tslm_huron, series = "Linear") +
+  autolayer(fitted(tslm_huron), series = "Linear") +
+  autolayer(fc_tslm_huron, series = "Linear") +
   xlab("Year") +  ylab("Water level") +
   ggtitle("Lake Huron water level change",
           subtitle = "using Linear Regression model") +
@@ -547,8 +547,8 @@ autoplot(huron) +
         plot.subtitle = element_text(hjust = 0.5))
 
 autoplot(huron) +
-  forecast::autolayer(fitted(tslm_pw_huron), series = "Piecewise") +
-  forecast::autolayer(fc_tslm_pw_huron, series="Piecewise") +
+  autolayer(fitted(tslm_pw_huron), series = "Piecewise") +
+  autolayer(fc_tslm_pw_huron, series="Piecewise") +
   xlab("Year") +  ylab("Water level") +
   ggtitle("Lake Huron water level change",
           subtitle = "using piecewise linear model") +
