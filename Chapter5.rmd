@@ -175,8 +175,6 @@ head(fancy, 50)
 # The size of the seasonal variations should be almost same across the whole series to be fitted well to a model. Fancy data shows that seasonal variations increased exponentially. Therefore it is necessary to take logarithms of the data.
 
 # c. Use R to fit a regression model to the logarithms of these sales data with a linear trend, seasonal dummies and a "surfing festival" dummy variable.
-# I'll do Box-Cox transformation for fancy data
-lambda <- BoxCox.lambda(fancy)
 
 # make "surfing_festival" dummy variable using time index of fancy. The value is 1 if the year is equal to or above 1988 and the month is March.
 Time <- time(fancy)
@@ -192,22 +190,21 @@ for(i in 1:length(Time)){
 }
 # If I had made surfing_festival as a list, I should've needed to use unlist function to make it as atomic vector, not nested list. tslm function can get vector or factor type data, but it cannot get nested list.
 
-tslm_BoxCox_fancy <- tslm(
-  fancy ~ trend + season + surfing_festival,
-  lambda = lambda
+tslm_log_fancy <- tslm(
+  BoxCox(fancy, 0) ~ trend + season + surfing_festival
   )
 
 # d. Plot the residuals against time and against the fitted values. Do these plots reveal any problems with the model?
-autoplot(tslm_BoxCox_fancy$residuals)
+autoplot(tslm_log_fancy$residuals)
 # The residuals have pattern against time. It means that there is correlation between residuals and time.
 
-cbind(Residuals = tslm_BoxCox_fancy$residuals,
-      Fitted_values = tslm_BoxCox_fancy$fitted.values) %>%
+cbind(Residuals = tslm_log_fancy$residuals,
+      Fitted_values = tslm_log_fancy$fitted.values) %>%
   as.data.frame() %>%
   ggplot(aes(x = Fitted_values,
              y = Residuals)) +
     geom_point()
-# The size of the residuals changed as we move along the x-axis. It means that there may be heteroscedacity in the errors or that the variance of the residuals may not be constant. Maybe better transformation of the data is required.
+# The size of the residuals changed as we move along the x-axis(fitted values). It means that even after log transformation, there are still heteroscedacity in the errors or that the variance of the residuals aren't still constant. 
 
 # e. Do boxplots of the residuals for each month. Does this reveal any problems with the model?
 cbind.data.frame(
@@ -216,7 +213,7 @@ cbind.data.frame(
       labels = month.abb,
       ordered = TRUE
     ),
-    Residuals = tslm_BoxCox_fancy$residuals
+    Residuals = tslm_log_fancy$residuals
     ) %>%
   ggplot(aes(x = Month,
              y = Residuals)) +
@@ -225,16 +222,18 @@ cbind.data.frame(
 # If the mapping of boxplot is (factor x factor), it would be difficult to see any box because boxplot function can't aggregate factor type data. The result would be looked like a scatter plot.
 
 # To see the change of the residuals for each month, I used ggsubseriesplot function.
-ggsubseriesplot(tslm_BoxCox_fancy$residuals)
+ggsubseriesplot(tslm_log_fancy$residuals)
 
 # The distribution of the residuals was unsymetrical for some months. And for some months, the median of the residuals wasn't 0(residuals' mean should be 0 for all months because getting the minimum SSE means getting mean). Residuals with such properties can't have normal distribution, which will make it difficult to get prediction interval.
 
 # f. What do the values of the coefficients tell you about each variable?
-tslm_BoxCox_fancy$coefficients
-# The model has positive trend. It means that as time goes on, the sales increase generally. And all seasonal variables are positive. It means that the sales amount was minimum on January and the sales of the other months were greater than January for most of years. Finally, surfing_festival variable got 0.51 and it isn't small compared to the others. It means that there were increased sales in Marchs when surfing festival happened.
+tslm_log_fancy$coefficients
+# The model has positive trend. It means that as time goes on, the sales amount generally increases. 
+# And all seasonal variables are positive. It means that the sales amount was minimum on January and the sales of the other months were greater than January for most of years. 
+# Finally, surfing_festival variable's coefficient is 0.501 and it isn't small compared to the others. It means that there were increased sales in Marchs when surfing festival happened.
 
 # g. What does the Breusch-Godfrey test tell you about your model?
-checkresiduals(tslm_BoxCox_fancy)
+checkresiduals(tslm_log_fancy)
 # The p value of the test is less than 0.05. It means that the residuals can be distinguished from white noise. The residuals can be correlated with each other.
 
 # h. Regardless of your answers to the above questions, use your regression model to predict the monthly sales for 1994, 1995, and 1996. Produce prediction intervals for each of your forecasts.
@@ -252,39 +251,67 @@ future_fancy <- ts(data = future_fancy,
                    frequency = 12)
 
 # forecast
-fc_tslm_BoxCox_fancy <- forecast(
-  tslm_BoxCox_fancy,
+fc_tslm_log_fancy <- forecast(
+  tslm_log_fancy,
   newdata = data.frame(Time = time(future_fancy),
                        surfing_festival = future_fancy)
 )
 
 # plot the forecast
-autoplot(fc_tslm_BoxCox_fancy)
+autoplot(fc_tslm_log_fancy)
 
 # show prediction interval
-fc_tslm_BoxCox_fancy$upper
-fc_tslm_BoxCox_fancy$lower
-# The intervals on December were especially large.
+fc_tslm_log_fancy$upper
+fc_tslm_log_fancy$lower
+# The intervals on Decembers were especially large.
 
 # i. Transform your predictions and intervals to obtain predictions and intervals for the raw data.
+
+# make fc_tslm_fancy object, which are inverse log transformed version of fc_tslm_log_fancy.
+fc_tslm_fancy <- fc_tslm_log_fancy
+
+# members which should be inverse log transformed.
+members_inv.log <- c('x', 'mean', 'lower', 'upper', 'residuals', 'fitted')
+
+# apply inverse log transform to the members.
+fc_tslm_fancy[members_inv.log] <- lapply(
+  fc_tslm_log_fancy[members_inv.log],
+  InvBoxCox,
+  lambda = 0
+)
+
+# apply inverse log transform to 'BoxCox(fancy, 0)' member in model's model.
+fc_tslm_fancy[['model']][['model']][1] <- lapply(
+  fc_tslm_log_fancy[['model']][['model']][1],
+  InvBoxCox,
+  lambda = 0
+)
+
+autoplot(fc_tslm_fancy)
+# Even if I transformed the data, fitted values and forecasts, the name of predicted values is still 'BoxCox(fancy, 0)'. 
+# I can't change it because it came from the formula in tslm function. Changing it means making new model, not just changing the variable's name.
+# I think that it is better to set lambda = 0 in forecast function from the very first to forecast using log transformation.
+
+fc_tslm_fancy$upper
+fc_tslm_fancy$lower
+# The range of prediction intervals became a lot bigger after inverse log transformation.
+
+# j. How could you improve these predictions by modifying the model?
+# The predictions when I don't use log transformation.
 tslm_fancy <- tslm(
   fancy ~ trend + season + surfing_festival
   )
 
-fc_tslm_fancy <- forecast(
-  tslm_fancy,
+fc_tslm_fancy2 <- forecast(
+  tslm_fancy, 
   newdata = data.frame(Time = time(future_fancy),
                        surfing_festival = future_fancy)
 )
 
-autoplot(fc_tslm_fancy)
+autoplot(fc_tslm_fancy2)
+# The result shows that the forecasts couldn't reflect the exponential growth trend.
 
-fc_tslm_fancy$upper
-fc_tslm_fancy$lower
-# The predictions are a lot less accurate than the transformed version.
-
-# j. How could you improve these predictions by modifying the model?
-# I could've improved the predictions by using Box-Cox transformation, one of lograrithm transfortion method. By using the method, the predictions could follow the exponential growth trend of the sales better.
+# I could've improved the predictions by using log transformation. By using the transformation, the predictions could reflect the sales' exponential growth trend better.
 
 ```
 
