@@ -454,7 +454,7 @@ accuracy(ets_AAM_retail_train, ts_retail_test)
 # Fitted values and forecasts of above code yields far bigger values. It looked like the lambda in forecast function just do back-transform if input model doesn't use lambda option. 
 # I wonder if the forecast function assumes that the model entered is already transformed if lambda isn't designated in the model.
 
-stl_ets_retail_train <- ts_retail_train %>%
+fc_stl_ets_retail_train <- ts_retail_train %>%
   stlm(
     #made stl model first
     s.window = 13,
@@ -464,24 +464,29 @@ stl_ets_retail_train <- ts_retail_train %>%
     lambda = BoxCox.lambda(ts_retail_train)
   ) %>%
   #forecast using stl model
-  forecast(h = 36)
+  forecast(
+    h = 36,
+    lambda = BoxCox.lambda(ts_retail_train)
+    )
 # I didn't need to use seasadj function because forecasts of STL objects are applying non-seasonal forecasting method to the seasonally adjusted data automatically.
 
-autoplot(stl_ets_retail_train)
-accuracy(stl_ets_retail_train, ts_retail_test)
+autoplot(fc_stl_ets_retail_train)
+accuracy(fc_stl_ets_retail_train, ts_retail_test)
 # ETS forecasting after STL decomposition with Box-Cox transformation yielded better result than when ETS(A, Ad, M) was used. But the method was a little worse than ETS(A, A, M). It still couldn't beat seasonal naive method.
 
 # try forecasting without doing transformation.
-stl_ets_retail_train_without_tr <- ts_retail_train %>%
-  stlm(
-    s.window = 13,
-    robust = TRUE,
-    method = "ets"
-  ) %>%
-  forecast(h = 36)
+fc_stl_ets_retail_train_without_tr <- 
+  ts_retail_train %>%
+    stlm(
+      s.window = 13,
+      robust = TRUE,
+      method = "ets"
+    ) %>%
+    forecast(h = 36)
 
-autoplot(stl_ets_retail_train_without_tr)
-accuracy(stl_ets_retail_train_without_tr, ts_retail_test)
+autoplot(fc_stl_ets_retail_train_without_tr)
+accuracy(fc_stl_ets_retail_train_without_tr, 
+         ts_retail_test)
 # Without doing transformation, when I got accuracy using test set I got better result. But I couldn't expect it because when I also used transformation, the accuracy of training set was better. In fact, the actual values in forecast horizon increased exponentially.
 # Without using transformation, the forecast could reflect the fact that the bigger values have bigger variation and it was useful at forecasting at the time.
 
@@ -507,14 +512,14 @@ autoplot(seasadj_ukcars)
 # The variations in seasonally adjusted data are smaller.
 
 # c. Forecast the next two years of the series using an additive damped trend method applied to the seasonally adjusted data. (This can be done in one step using stlf with arguments etsmodel="AAN", damped=TRUE.
-stl_ets_AAdN_ukcars <- ukcars %>% stlf(h = 8, etsmodel = "AAN", damped = TRUE)
+stlf_ets_AAdN_ukcars <- ukcars %>% stlf(h = 8, etsmodel = "AAN", damped = TRUE)
 
-autoplot(stl_ets_AAdN_ukcars)
+autoplot(stlf_ets_AAdN_ukcars)
 
 # d. Forecast the next two years of the series using Holt's linear method applied to the seasonally adjusted data (as before but with damped=FALSE).
-stl_ets_AAN_ukcars <- ukcars %>% stlf(h = 8, etsmodel = "AAN", damped = FALSE)
+stlf_ets_AAN_ukcars <- ukcars %>% stlf(h = 8, etsmodel = "AAN", damped = FALSE)
 
-autoplot(stl_ets_AAN_ukcars)
+autoplot(stlf_ets_AAN_ukcars)
 
 # e. Now use ets() to choose a seasonal model for the data.
 ets_ukcars <- ets(ukcars)
@@ -526,9 +531,9 @@ autoplot(forecast(ets_ukcars, h = 8))
 # f. Compare the RMSE of the ETS model with the RMSE of the models you obtained using STL decompositions. Which gives the better in-sample fits?
 writeLines("")
 print("Accuracy of STL + ETS(A, Ad, N) model")
-accuracy(stl_ets_AAdN_ukcars)
+accuracy(stlf_ets_AAdN_ukcars)
 print("Accuracy of STL + ETS(A, A, N) model")
-accuracy(stl_ets_AAN_ukcars)
+accuracy(stlf_ets_AAN_ukcars)
 print("Accuracy of ETS(A, N, A) model")
 accuracy(ets_ukcars)
 # STL + ETS(A, Ad, N) was the best model.
@@ -537,7 +542,7 @@ accuracy(ets_ukcars)
 # I think that the forecasts from the STL + ETS(A, Ad, N) model were the most reasonable ones. I think so because the forecasts best reflected the not-increasing and smaller-variation trend after the fall of 2001.
 
 # h. Check the residuals of your preferred model.
-checkresiduals(stl_ets_AAdN_ukcars)
+checkresiduals(stlf_ets_AAdN_ukcars)
 # There are still some autocorrelations in the residuals. And they don't look like normally distributed.
 
 ```
@@ -552,6 +557,7 @@ str(visitors)
 head(visitors)
 
 autoplot(visitors)
+ggseasonplot(visitors)
 # Can see general increasing trend and monthly seasonality. And I can also find the dramatic decrease in May, 2003.
 
 # b. Split your data into a training set and a test set comprising the last two years of available data. Forecast the test set using Holt-Winters' multiplicative method.
