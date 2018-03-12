@@ -701,7 +701,7 @@ tail(usmelec.new)
 
 # make ts time series using usmelec.new Value column data.
 usmelec.new.ts <- ts(
-  as.numeric(usmelec.new[, "Value"]), 
+  usmelec.new[, "Value"], 
   start = c(1973, 1), 
   frequency = 12
   )
