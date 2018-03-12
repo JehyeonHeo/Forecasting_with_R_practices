@@ -11,13 +11,13 @@ library(tseries)
 
 2. A classic example of a non-stationary series is the daily closing IBM stock price series (data set ibmclose). Use R to plot the daily closing prices for IBM stock and the ACF and PACF. Explain how each plot shows that the series is non-stationary and should be differenced.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, Question1}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Question2}
 
 ggtsdisplay(ibmclose)
-# ACF plot shows that the autocorrelation values are bigger than critical value and decrease slowly. Also, r1 is large(near to 1) and positive. It means that the IBM stock data are non-stationary(predictable using lagged values).
+# ACF plot shows that the autocorrelation values are bigger than critical value and decrease slowly. Also, r1 is large(near to 1) and positive. It means that the IBM stock data are non-stationary(that is, predictable using lagged values).
 # PACF plot shows that there is a strong correlation between IBM stock data and their 1 lagged values. It means that IBM stock data can be predicted by 1 lagged values and they aren't stationary.
 
-# To get stationary data, IBM stock data need differencing. Differencing can help stabilize the mean of a time series by removing changes in the level of a time series. Therefore it will eliminate or reduce trend and seasonality and the effect can make non-staionary data stationary.
+# To get stationary data, IBM stock data need differencing. Differencing can help stabilize the mean of a time series by removing changes in the level of a time series. Therefore it will eliminate or reduce trend and seasonality. And the effect can make non-staionary data stationary.
 
 ```
 
@@ -62,11 +62,13 @@ Box.test(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))),
 ggAcf(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))))
 # There are still some autocorrelations left.
 kpss.test(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))))
-# But kpss test result shows that differencing with Box-Cox transformation was enough to make the data stationary. In mcopper data case, even if differencing with Box-Cox transformation didn't make the data like white noise series, it made the data stationary.
+# But kpss test result shows that differencing with Box-Cox transformation was enough to make the data stationary. 
+# Even if differencing with Box-Cox transformation didn't make the data like white noise series, it made the data stationary.
 
 # d. enplanements
 autoplot(enplanements)
-# enplanements data have seasonality and increasing trend even if the number fell in 2001. I think that the data need seasonal differencing, too. The variations are bigger for bigger numbers. Therefore I'll use Box-Cox transformation before differencing.
+# enplanements data have seasonality and increasing trend even if the number of enplanements fell in 2001. Therefore, I think that the data need seasonal differencing, too. 
+# The variations are bigger for bigger numbers. Therefore I'll use Box-Cox transformation before differencing.
 ndiffs(enplanements)
 nsdiffs(enplanements)
 # the data need 1 first differencing and 1 seasonal differencing.
@@ -156,7 +158,7 @@ kpss.test(
 4. For the enplanements data, write down the differences you chose above using backshift operator notation.
 
 ### the data needed 1 first difference, 1 seasonal difference after Box-Cox transformation. The model of the data can be written as ARIMA(0, 1, 0)(0, 1, 0)12 with Box-Cox transformation(lambda = -0.227).
-### The model expression using backshift operator notaion B: 
+### The model expression using backshift operator notation B: 
 ### first equation : wt = (yt^(-0.227) - 1)/(-0.227)
 ### second equation : (1 - B)(1 - B^12)wt = et, where et is a white noise series.
 
@@ -252,7 +254,7 @@ for(i in 2:50){
    y_arima.1.0.1[i] <- 0.6*y_arima.1.0.1[i-1] + 0.6*e[i-1] + e[i]
 }
     
-# f. Generate data from an AR(2) model with phi1 = ???0.8, phi2 = 0.3 and sigma^2 = 1. (Note that these parameters will give a non-stationary series.)
+# f. Generate data from an AR(2) model with phi1 = -0.8, phi2 = 0.3 and sigma^2 = 1. (Note that these parameters will give a non-stationary series.)
 y_arima.2.0.0 <- ts(numeric(50))
 e <- rnorm(50)
 for(i in 3:50){
@@ -266,7 +268,7 @@ autoplot(y_arima.1.0.1, series = "ARMA(1, 1)") +
   guides(colour = guide_legend(title = "Models"))
 
 autoplot(y_arima.1.0.1)
-# data from an AR(2) model increased oscillating. They are non-staionary data. But data from an ARMA(1, 1) model were stationary.
+# data from an AR(2) model increased with oscillation. They are non-staionary data. But data from an ARMA(1, 1) model were stationary.
 
 ```
 
@@ -499,7 +501,7 @@ accuracy(usgdp_arima.1.1.0.drift)
 checkresiduals(usgdp_autoarima)
 checkresiduals(usgdp_arima.1.1.0.drift)
 # In either case, the residuals are like white noise series and are not normally distributed.
-# I'll choose the best model as ARIMA(2, 1, 0) with drift model. With the model, RMSE and MASE values were lower. There wasn't significant spike at lag 2 in ACF plot.
+# I'll choose the best model as ARIMA(2, 1, 0) with drift model. With the model, RMSE and MASE values were lower. And there wasn't significant spike at lag 2 in ACF plot of ARIMA(2, 1, 0) with drift model, even if it exists in ARIMA(1, 1, 0) with drift model.
 
 # e. produce forecasts of your fitted model. Do the forecasts look reasonable?
 fc_usgdp_autoarima <- forecast(
@@ -515,7 +517,7 @@ fc_usgdp_ets <- forecast(
 )
 
 autoplot(fc_usgdp_ets)
-# It looked like these forecasts are more likely than the ones with ARIMA model. When trend is obvious, ETS is better than ARIMA model? I wonder about it.
+# It looked like these forecasts are more likely than the ones with ARIMA model. When trend is obvious, is ETS better than ARIMA model? I wonder about it.
 
 ```
 
@@ -536,11 +538,13 @@ ggAcf(austourists)
 ggPacf(austourists)
 # there are 5 significant spikes, and then no significant spikes thereafter (apart from one at lag 8, which are probably related with quarterly seasonality).
 
-# d. Produce plots of the seasonally differenced data  (1 ??? B^4)Yt. What model do these graphs suggest?
+# d. Produce plots of the seasonally differenced data  (1 - B^4)Yt. What model do these graphs suggest?
 ggtsdisplay(diff(austourists, lag = 4))
 # the seasonally differenced data are looked like to need at least one more differencing to make it stationary.
-# When considered the values at the lags of multiple of 4, there are just significant spikes at lag 4. I think that the order of seasonal ARIMA model can be (1, 1, 0)[4] or (0, 1, 1)[4]. I'll choose (1, 1, 0)[4] order. 
-# Disregarding the values at lag 4, autocorrelation values are looked like decreasing sinusoidally while partial autocorrelation values have spikes at lag 1 and 5. There aren't significant spikes at lag 2 and 3. I think that the spike at lag 5 doesn't mean that there are still important information unused at 5th lagged values. It should've been positively significant because of the big negatively significant spike at lag 4 after seasonal differencing. I can find this by drawing PACF plot after doing one more differencing.
+# For the values at the lags of multiple of 4, there are just significant spikes at lag 4. It is same for ACF and PACF plots. The order of seasonal ARIMA model can be (1, 1, 0)[4] or (0, 1, 1)[4]. I'll choose (1, 1, 0)[4] order. 
+# Disregarding the values at lag 4, autocorrelation values are looked like decreasing sinusoidally while partial autocorrelation values have spikes at lag 1 and 5. There aren't significant spikes at lag 2 and 3. 
+# I think that the spike at lag 5 doesn't mean that there are still important information unused at 5th lagged values. It should've been positively significant because of the big negatively significant spike at lag 4 after seasonal differencing. 
+# I can find this by drawing PACF plot after doing one more differencing.
 ggtsdisplay(diff(diff(austourists, lag = 4)))
 # Therefore I suggest ARIMA(1, 1, 0)(1, 1, 0)[4] model.
 
@@ -619,7 +623,7 @@ ggtsdisplay(
     )
   )
 )
-# I think that ARIMA(0, 1, 2)(0, 1, 1)[12] after Box-Cox transformation model might describe the data well. I'll try ARIMA(0, 1, 3)(0, 1, 1)[12] after Box-Cox transformation model, too.
+# I think that ARIMA(0, 1, 2)(0, 1, 1)[12] with Box-Cox transformation model might describe the data well. I'll try ARIMA(0, 1, 3)(0, 1, 1)[12] with Box-Cox transformation model, too.
 usmelec_arima.0.1.2.0.1.1.12 <- Arima(
   usmelec,
   lambda = BoxCox.lambda(usmelec),
@@ -928,7 +932,8 @@ autoplot(fc_qauselec_ets) +
 autoplot(fc_qauselec_autoarima) +
   scale_x_continuous(limits = c(2005, 2012)) +
   scale_y_continuous(limits = c(50, 70))
-# I don't know which forecasts are best. Forecasts from STL + ARIMA(0, 1, 1) with drift model yielded highest forecasts. It looked like it followed latest trend a lot. ETS(M, A, M) model yielded broadest PI. ARIMA(1, 1, 1)(1, 1, 2)[4] model yielded least varianced forecasts. In qauselec data case, the choice of model didn't affect forecasts much because they already have strong seasonality and almost not changed increasing trend.
+# I don't know which forecasts are best. Forecasts from STL + ARIMA(0, 1, 1) with drift model yielded highest forecasts. It looked like it followed latest trend a lot. ETS(M, A, M) model yielded broadest PI. ARIMA(1, 1, 1)(1, 1, 2)[4] model yielded least varianced forecasts. 
+# For qauselec data, the choice of model didn't affect forecasts much because they already have strong seasonality and almost non-changing trend.
 
 ```
 
@@ -951,7 +956,7 @@ fc_retail_snaive <- snaive(retail.ts, h = 36)
 
 autoplot(fc_retail_snaive)
 
-# In chapter 7, I thought that Holt-Winters' multiplicative method was best in ets models.
+# In chapter 7, I thought that Holt-Winters' multiplicative method was best among ets models.
 fc_retail_ets <- forecast(
   ets(retail.ts, lambda = BoxCox.lambda(retail.ts)), 
   h = 36
@@ -1013,7 +1018,7 @@ autoplot(sheep)
 
 # c. By examining the ACF and PACF of the differenced data, explain why this model is appropriate.
 ggtsdisplay(diff(sheep))
-# ACF plot shows sinusoidally decreasing while PACF plot shows significant spikes at lag 1 to 3, but no beyond lag 3. Therefore ARIMA(3, 1, 0) is appropriate.
+# ACF plot shows sinusoidally decreasing autocorrelation values while PACF plot shows significant spikes at lag 1 to 3, but no beyond lag 3. Therefore ARIMA(3, 1, 0) is appropriate.
 
 # d. The last five values of the series are given below:
 # Year	            1935	1936	1937	1938	1939
@@ -1036,7 +1041,7 @@ fc_sheep_arima.3.1.0 <- forecast(
 
 fc_sheep_arima.3.1.0$mean
 # calculated forecasts were a little bigger than the forecasts from Arima function. And the differences between the forecasts at the same time became bigger as time goes on. I think that it happened because of the differences of the coefficients. 
-# Small differences in the coefficients made the difference between the first forecasts. And then the lower forecast value was used to forecast the next time point's forecast. When the next time point's forecast of Arima function was calculated, the difference became bigger. It looked like such situation repeated.
+# Small differences in the coefficients made the difference between the first forecasts. And then the forecast values were used to calculate the next time point's forecasts. When the next time point's forecasts of Arima function were calculated, the difference became bigger. It looked like such situation repeated.
 ar1 <- fc_sheep_arima.3.1.0$model$coef[1]
 ar2 <- fc_sheep_arima.3.1.0$model$coef[2]
 ar3 <- fc_sheep_arima.3.1.0$model$coef[3]
@@ -1064,9 +1069,9 @@ autoplot(bicoal)
 # yt = c + phi1*yt-1 + phi2*yt-2 + phi3*yt-3 + phi4*yt-4 + et
 # where yt is the coal production in year t and et is a white noise series. What sort of ARIMA model is this (i.e., what are p, d, and q)?
 
-# (1 - phi1*B - phi2*B^2 - phi3*B^3 - phi4*B^4)yt = c + et
+# (1 - phi1*B - phi2*B^2 - phi3*B^3 - phi4*B^4)*yt = c + et
 # if mu is the mean of yt,
-# c = mu(1 - phi1*B - phi2*B^2 - phi3*B^3 - phi4*B^4)
+# c = mu*(1 - phi1*B - phi2*B^2 - phi3*B^3 - phi4*B^4)
 # This model is ARIMA(4, 0, 0) or AR(4).
 
 # c. Explain why this model was chosen using the ACF and PACF.
@@ -1110,7 +1115,7 @@ bicoal.1970.new <- c + phi1*bicoal.1969.new + phi2*545 + phi3*552 + phi4*534
 bicoal.1971.new <- c + phi1*bicoal.1970.new + phi2*bicoal.1969.new + phi3*545 + phi4*552
 
 c(bicoal.1969.new, bicoal.1970.new, bicoal.1971.new)
-# These calculation and results confirm the causation of the differences in forecasts.
+# These calculations and results confirm the causation of the differences in forecasts.
 
 ```
 
