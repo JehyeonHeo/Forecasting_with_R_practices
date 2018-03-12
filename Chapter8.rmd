@@ -55,13 +55,14 @@ kpss.test(diff(diff(usnetelec)))
 # c. mcopper
 autoplot(mcopper)
 # mcopper data have increasing trend. And they have bigger variation for bigger prices. Therefore I'll use Box-Cox transformation before differencing.
-autoplot(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))))
-Box.test(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))),
+lambda_mcopper <- BoxCox.lambda(mcopper)
+autoplot(diff(BoxCox(mcopper, lambda_mcopper)))
+Box.test(diff(BoxCox(mcopper, lambda_mcopper)),
          type = "Ljung-Box")
 # Plot result looked like BoxCox transformation and first differencing made the data like white noise series. But Ljung-Box test shows that it didn't.
-ggAcf(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))))
+ggAcf(diff(BoxCox(mcopper, lambda_mcopper)))
 # There are still some autocorrelations left.
-kpss.test(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))))
+kpss.test(diff(BoxCox(mcopper, lambda_mcopper)))
 # But kpss test result shows that differencing with Box-Cox transformation was enough to make the data stationary. 
 # Even if differencing with Box-Cox transformation didn't make the data like white noise series, it made the data stationary.
 
@@ -69,13 +70,14 @@ kpss.test(diff(BoxCox(mcopper, BoxCox.lambda(mcopper))))
 autoplot(enplanements)
 # enplanements data have seasonality and increasing trend even if the number of enplanements fell in 2001. Therefore, I think that the data need seasonal differencing, too. 
 # The variations are bigger for bigger numbers. Therefore I'll use Box-Cox transformation before differencing.
+lambda_enplanements <- BoxCox.lambda(enplanements)
 ndiffs(enplanements)
 nsdiffs(enplanements)
 # the data need 1 first differencing and 1 seasonal differencing.
 autoplot(
   diff(
     diff(
-      BoxCox(enplanements, BoxCox.lambda(enplanements)),
+      BoxCox(enplanements, lambda_enplanements),
       lag = 12
     )
   )
@@ -83,7 +85,7 @@ autoplot(
 Box.test(
   diff(
     diff(
-      BoxCox(enplanements, BoxCox.lambda(enplanements)),
+      BoxCox(enplanements, lambda_enplanements),
       lag = 12
     )
   ),
@@ -93,7 +95,7 @@ Box.test(
 ggAcf(
   diff(
     diff(
-      BoxCox(enplanements, BoxCox.lambda(enplanements)),
+      BoxCox(enplanements, lambda_enplanements),
       lag = 12
     )
   )
@@ -102,7 +104,7 @@ ggAcf(
 kpss.test(
   diff(
     diff(
-      BoxCox(enplanements, BoxCox.lambda(enplanements)),
+      BoxCox(enplanements, lambda_enplanements),
       lag = 12
     )
   )
@@ -112,13 +114,14 @@ kpss.test(
 # e. visitors
 autoplot(visitors)
 # visitors data are similar to enplanements data. They have seasonality and increasing trend. It looked like they also need Box-Cox transformation, first and seasonal differencing.
+lambda_visitors <- BoxCox.lambda(visitors)
 ndiffs(visitors)
 nsdiffs(visitors)
 # visitors data need 1 first and 1 seasonal differencing.
 autoplot(
   diff(
     diff(
-      BoxCox(visitors, BoxCox.lambda(visitors)),
+      BoxCox(visitors, lambda_visitors),
       lag = 12
     )
   )
@@ -126,7 +129,7 @@ autoplot(
 Box.test(
   diff(
     diff(
-      BoxCox(visitors, BoxCox.lambda(visitors)),
+      BoxCox(visitors, lambda_visitors),
       lag = 12
     )
   ),
@@ -136,7 +139,7 @@ Box.test(
 ggAcf(
   diff(
     diff(
-      BoxCox(visitors, BoxCox.lambda(visitors)),
+      BoxCox(visitors, lambda_visitors),
       lag = 12
     )
   )
@@ -145,7 +148,7 @@ ggAcf(
 kpss.test(
   diff(
     diff(
-      BoxCox(visitors, BoxCox.lambda(visitors)),
+      BoxCox(visitors, lambda_visitors),
       lag = 12
     )
   )
@@ -602,6 +605,7 @@ autoplot(usmelec, series = "Data") +
 
 # b. Do the data need transforming? If so, find a suitable transformation.
 # The data show bigger variation for bigger amount. Therefore I think that Box-Cox transformation would be suitable for the data.
+lambda_usmelec <- BoxCox.lambda(usmelec)
 
 # c. Are the data stationary? If not, find an appropriate differencing which yields stationary data.
 # The data are non-stationary.
@@ -611,14 +615,14 @@ nsdiffs(usmelec)
 
 # d. Identify a couple of ARIMA models that might be useful in describing the time series. Which of your models is the best according to their AIC values?
 ggtsdisplay(diff(
-  BoxCox(usmelec, BoxCox.lambda(usmelec)),
+  BoxCox(usmelec, lambda_usmelec),
   lag = 12
   ))
 # Definitely, I need to use first differencing, too.
 ggtsdisplay(
   diff(
     diff(
-      BoxCox(usmelec, BoxCox.lambda(usmelec)),
+      BoxCox(usmelec, lambda_usmelec),
       lag = 12
     )
   )
@@ -626,14 +630,14 @@ ggtsdisplay(
 # I think that ARIMA(0, 1, 2)(0, 1, 1)[12] with Box-Cox transformation model might describe the data well. I'll try ARIMA(0, 1, 3)(0, 1, 1)[12] with Box-Cox transformation model, too.
 usmelec_arima.0.1.2.0.1.1.12 <- Arima(
   usmelec,
-  lambda = BoxCox.lambda(usmelec),
+  lambda = lambda_usmelec,
   order = c(0, 1, 2),
   seasonal = c(0, 1, 1)
 )
 
 usmelec_arima.0.1.3.0.1.1.12 <- Arima(
   usmelec,
-  lambda = BoxCox.lambda(usmelec),
+  lambda = lambda_usmelec,
   order = c(0, 1, 3),
   seasonal = c(0, 1, 1)
 )
@@ -652,7 +656,7 @@ checkresiduals(usmelec_arima.0.1.2.0.1.1.12)
 # I want to know what model was selected if I used auto.arima function. I'll try it.
 usmelec_autoarima <- auto.arima(
   usmelec,
-  lambda = BoxCox.lambda(usmelec)
+  lambda = lambda_usmelec
 )
 
 usmelec_autoarima
