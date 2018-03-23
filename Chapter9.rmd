@@ -435,7 +435,7 @@ retail.ts_autoarima2
 # ARIMA(0, 1, 2)(2, 0, 1)[12] error model was chosen.
 
 autoplot(retail.ts) +
-  autolayer(retail.ts_arima.2.1.0.1.0.0.12$fitted)
+  autolayer(retail.ts_autoarima2$fitted)
 # The residuals of the last 2 peak points became smaller.
 
 checkresiduals(retail.ts_autoarima2)
