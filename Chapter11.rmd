@@ -6,6 +6,12 @@ library(fpp2)
 library(vars)
 library(xlsx)
 
+# load foreach and doParallel packages to do parallel computing.
+library(foreach)
+library(doParallel)
+workers <- makeCluster(4) # My computer has 4 cores
+registerDoParallel(workers)
+
 ```
 
 1. Use the tbats() function to model your retail time series.
