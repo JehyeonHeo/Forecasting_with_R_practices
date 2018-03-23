@@ -387,23 +387,37 @@ h <- 36L
 debitcards.future <- matrix(0, nrow=nsim, ncol=h)
 
 # put each simulation's point forecasts in each row of debitcards.future matrix.
-# It takes lots of time to run below loop.
-for(i in seq(nsim)){
-  debitcards.future[i,] <- simulate(
-    ets(sim[[i]]), nsim=h
-    )
-}
-
-# I can make debitcards.future using map function of purrr package, too.
-debitcards.future <- purrr::map(
-  as.list(bld.mbb.bootstrap(debitcards, 1000L)), 
-  function(x){forecast(ets(x), h=h)$mean}
-  ) %>%
-  # change the class from list to vector.
+# I can get debitcards.future much faster by using parallel computing.
+debitcards.future <- foreach(
+  i = 1:1000,
+  .packages = 'forecast'
+  ) %dopar%
+  simulate(
+    ets(sim[[i]]), nsim = h
+  ) %>% 
   unlist()
 
-# change the class from vector to matrix. I couldn't get 1000 x 24 matrix by directly change the class to matrix from list. Therefore I made the format as vector first and then change it as matrix designating the number of rows and columns.
-dim(debitcards.future) <- c(1000, 24)
+dim(debitcards.future) <- c(1000, 36)
+
+# I can get debitcards.future by running below loop.
+# But it takes lots of time to run it.
+#for(i in seq(nsim)){
+#  debitcards.future[i,] <- simulate(
+#    ets(sim[[i]]), nsim=h
+#    )
+#}
+
+# I can make debitcards.future using map function of purrr package, too.
+# But it also takes lots of time to run the function.
+#debitcards.future <- purrr::map(
+#  as.list(bld.mbb.bootstrap(debitcards, 1000L)), 
+#  function(x){forecast(ets(x), h=h)$mean}
+#  ) %>%
+#  # change the class from list to vector.
+#  unlist()
+# change the class from vector to matrix. I couldn't get 1000 x 36 matrix by directly change the class to matrix from list. 
+# Therefore I made the format as vector first and then change it as matrix designating the number of rows and columns.
+# dim(debitcards.future) <- c(1000, 36)
 
 # Finally, take the means and quantiles of these simulated sample paths to form point forecasts and prediction intervals.
 # tsp function extract start time, end time and the frequency of data.
@@ -443,17 +457,35 @@ autoplot(debitcards) +
 # Can see that the PI of bootstraped simulations yielded larger interval than the one obtained from an ETS model applied directly to the original data.
 
 # Bagging(Bootstrap AGGregatING)
-# - produce forecasts from each of the additional bootstrapped time series, and average the resulting forecasts. We can get better forecasts than if we simply forecast the original time series directly.
-fc_debitcards_sim.sets <- purrr::map(
-  as.list(bootseries), 
-  function(x){forecast(ets(x))$mean}
-  ) %>%
+# - produce forecasts from each of the additional bootstrapped time series, and average the resulting forecasts. 
+# We can get better forecasts than if we simply forecast the original time series directly.
+# fc_debitcards_sim.sets can be got by running parallel computing, too.
+# It is a little faster than purrr's map function.
+fc_debitcards_sim.sets <- foreach(
+  i = 1:10,
+  .packages = 'forecast'
+  ) %dopar%
+  forecast(
+    ets(bootseries[[i]])
+    )$mean %>%
   # map function returns a list. Therefore to make it as ts object, transform it to data.frame first.
     as.data.frame() %>%
     ts(frequency=12, start=h.start)
+
+# Getting fc_debitcards_sim.sets by using map function.
+#fc_debitcards_sim.sets <- purrr::map(
+#  as.list(bootseries), 
+#  function(x){forecast(ets(x))$mean}
+#  ) %>%
+  # map function returns a list. Therefore to make it as ts object, transform it to data.frame first.
+#    as.data.frame() %>%
+#    ts(frequency=12, start=h.start)
+
+## Comparison of variables.
 # fc_debitcards_sim : ETS modeling for each 1000 bootstrapped series, generate 1000 sets of point forecasts. And then aggregate the 1000 sets by getting mean, lower and upper limits of the sets.
 # fc_debitcards_ets : ETS modeling from original data only, generate one set of point forecasts.
 # fc_debitcards_ets.mean : ETS modeling for each 10 bootstrapped series, generate 10 sets of point forecasts.
+
 
 # get aggregated mean forecasts from fc_debitcards_sim.sets. 
 fc_debitcards_sim2 <- structure(
