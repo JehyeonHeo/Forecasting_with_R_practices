@@ -7,6 +7,11 @@ library(vars)
 library(xlsx)
 
 # load foreach and doParallel packages to do parallel computing.
+# I can do parallel computation using %dopar% binary operator in foreach package with parallel backend in doParallel package. I can get result far faster than when I used loop.
+# If I use %do% instead of %dopar%, I can't use parallel computation even if I don't need to designate '.packages' option in foreach function. 
+# '.packages' option specifies the required R package to be loaded to use the function that I want to use repeatedly.
+# https://www.r-statistics.com/tag/r-parallel-computation/
+# This R version can't use doSMP package. Therefore I chose to use foreach and doParallel packages.
 library(foreach)
 library(doParallel)
 workers <- makeCluster(4) # My computer has 4 cores
