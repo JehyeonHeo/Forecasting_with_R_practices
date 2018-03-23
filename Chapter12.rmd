@@ -4,6 +4,15 @@
 
 library(fpp2)
 
+# I can do parallel computation using %dopar% binary operator in foreach package with parallel backend in doParallel package. I can get result far faster than when I used loop.
+# If I use %do% instead of %dopar%, I can't use parallel computation even if I don't need to designate '.packages' option in foreach function. '.packages' option specifies the required R package to be loaded to use the function that I want to use repeatedly.
+# https://www.r-statistics.com/tag/r-parallel-computation/
+# This R version can't use doSMP package. Therefore I chose to use foreach and doParallel packages.
+library(foreach)
+library(doParallel)
+workers <- makeCluster(4) # My computer has 4 cores
+registerDoParallel(workers)
+
 ```
 
 ## Forecast combinations examples
@@ -267,15 +276,6 @@ autoplot(bc_euretail) +
 ## How to decide the number of Fourier pairs for harmonic regression fastly.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Foreach_with_doParallel}
-
-# I can do parallel computation using %dopar% binary operator in foreach package with parallel backend in doParallel package. I can get result far faster than when I used loop.
-# If I use %do% instead of %dopar%, I can't use parallel computation even if I don't need to designate '.packages' option in foreach function. '.packages' option specifies the required R package to be loaded to use the function that I want to use repeatedly.
-# https://www.r-statistics.com/tag/r-parallel-computation/
-# This R version can't use doSMP package. Therefore I chose to use foreach and doParallel packages.
-library(foreach)
-library(doParallel)
-workers <- makeCluster(4) # My computer has 4 cores
-registerDoParallel(workers)
 
 aiccs <- foreach(i=1:26, .packages = "fpp2") %dopar%     auto.arima(
   gasoline, 
