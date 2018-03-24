@@ -90,22 +90,38 @@ c(
 gasoline %>% stlf() %>% autoplot()
 
 # An alternative approach is to use a dynamic harmonic regression model. Example using gasoline data again.
-gasoline_dreg.best <- list(aicc=Inf)
-
-for(K in seq(26)){
-  gasoline_dreg <- auto.arima(
-    #substitute seasonal component with Fourier terms.
+# Use parallel computing to choose the number of Fourier pairs that yields smallest AIC value.
+gasoline_aiccs <- foreach(
+  i = 1:26,
+  .packages = 'fpp2'
+  ) %dopar%
+  auto.arima(
     gasoline, 
-    xreg=fourier(gasoline, K=K), 
+    xreg=fourier(gasoline, K=i), 
     seasonal=FALSE
-    )
-  
-  if(gasoline_dreg$aicc < gasoline_dreg.best$aicc)
-  {
-    gasoline_dreg.best <- gasoline_dreg
-    gasoline_K.best <- K
-  }
-}
+    )$aic %>%
+  unlist()
+
+gasoline_K.best <- which(
+  gasoline_aiccs == min(gasoline_aiccs)
+)
+
+# Using for-loop to get the number of Fourier pairs.
+#gasoline_dreg.best <- list(aicc=Inf)
+#for(K in seq(26)){
+#  gasoline_dreg <- auto.arima(
+#    #substitute seasonal component with Fourier terms.
+#    gasoline, 
+#    xreg=fourier(gasoline, K=K), 
+#    seasonal=FALSE
+#    )
+#  
+#  if(gasoline_dreg$aicc < gasoline_dreg.best$aicc)
+#  {
+#    gasoline_dreg.best <- gasoline_dreg
+#    gasoline_K.best <- K
+#  }
+#}
 
 # forecast the next 2 years of data. If I assume that 1 year is about 52 weeks, forecast horizon(h) is 104.
 fc_gasoline_dreg.best <- forecast(
@@ -211,12 +227,23 @@ fc_gas_ets <- forecast(gas_ets, h=6)
 # Simulate 10000 future sample paths
 nsim <- 10000
 h <- 6 
-sim <- numeric(nsim)
 
-for(i in seq_len(nsim)){
-  # for each sample path, add 6 months' forecasts.
-  sim[i] <- sum(simulate(gas_ets, future=TRUE, nsim=h))
-}
+# Use parallel computing to get sample paths and the sums of their forecasts.
+sim <- foreach(
+  i = 1:nsim,
+  .packages = 'forecast'
+  ) %dopar%
+  sum(
+    simulate(gas_ets, future = TRUE, nsim = h)
+    ) %>%
+  unlist()
+  
+# Use for-loop to get sample paths and the sums of their forecasts. 
+#sim <- numeric(nsim)
+#for(i in seq_len(nsim)){
+#  # for each sample path, add 6 months' forecasts.
+#  sim[i] <- sum(simulate(gas_ets, future=TRUE, nsim=h))
+#}
 
 # get final aggregated forecast.
 gas_ets.sim.meanagg <- mean(sim)
